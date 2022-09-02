@@ -19,5 +19,8 @@
 
 /**
  * This package contains some personal utilities.
+ *
+ * @since 02.09.2022
+ * @author mhahnFr
  */
 package mhahnFr.utils;
