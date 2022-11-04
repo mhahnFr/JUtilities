@@ -35,33 +35,73 @@ import java.awt.event.FocusListener;
  * @author mhahnFr
  */
 public class HintTextField extends JTextField {
+    /** The hint that is displayed when this text field is empty and without focus. */
     private final String hint;
 
+    /**
+     * Constructs a normal {@link JTextField}. The given hint is immediately
+     * displayed in this text field.
+     *
+     * @param hint the hint to be used
+     * @see #hint
+     */
     public HintTextField(final String hint) {
         super(hint);
         this.hint = hint;
         init();
     }
 
-    public HintTextField(String hint, int columns) {
+    /**
+     * Constructs a normal {@link JTextField}. The given hint is immediately
+     * displayed in this text field.
+     *
+     * @param hint the hint to be used
+     * @param columns the number of columns this text field should be capable to hold
+     * @see #hint
+     */
+    public HintTextField(final String hint, int columns) {
         super(hint, columns);
         this.hint = hint;
         init();
     }
 
-    public HintTextField(Document doc, String hint, int columns) {
+    /**
+     * Constructs a normal {@link JTextField}. The given hint is immediately
+     * displayed in this text field.
+     *
+     * @param doc the document to be used
+     * @param hint the hint to be used
+     * @param columns the number of columns this text files should be capable to hold
+     * @see #hint
+     */
+    public HintTextField(Document doc, final String hint, int columns) {
         super(doc, hint, columns);
         this.hint = hint;
         init();
     }
 
+    /**
+     * Some initializing stuff that is shared among the constructors.
+     */
     private void init() {
         addFocusListener(new Listener());
         setForeground(Color.lightGray);
     }
 
+    /**
+     * Returns the hint that is associated with this text field.
+     *
+     * @return the hint of this text field
+     */
     public String getHint() { return hint; }
 
+    /**
+     * This class provides the {@link FocusListener} needed to display the
+     * hint of the {@link HintTextField} correctly.
+     *
+     * @since 04.11.2022
+     * @author mhahnFr
+     */
     private class Listener implements FocusListener {
         @Override
         public void focusGained(FocusEvent e) {
