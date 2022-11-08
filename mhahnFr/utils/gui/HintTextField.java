@@ -35,6 +35,8 @@ import java.awt.event.FocusListener;
  * @author mhahnFr
  */
 public class HintTextField extends JTextField {
+    /** The color that is used when displaying the hint text.                       */
+    private static final Color HINT_COLOR = Color.lightGray;
     /** The hint that is displayed when this text field is empty and without focus. */
     private final String hint;
 
@@ -85,7 +87,7 @@ public class HintTextField extends JTextField {
      */
     private void init() {
         addFocusListener(new Listener());
-        setForeground(Color.lightGray);
+        setForeground(HINT_COLOR);
     }
 
     /**
@@ -105,9 +107,9 @@ public class HintTextField extends JTextField {
     private class Listener implements FocusListener {
         @Override
         public void focusGained(FocusEvent e) {
-            if (getText().equals(hint)) {
+            if (getText().equals(hint) && getForeground().equals(HINT_COLOR)) {
                 setText("");
-                setForeground(Color.BLACK);
+                setForeground(Color.black);
             }
         }
 
@@ -115,7 +117,7 @@ public class HintTextField extends JTextField {
         public void focusLost(FocusEvent e) {
             if (getText().isBlank()) {
                 setText(hint);
-                setForeground(Color.lightGray);
+                setForeground(HINT_COLOR);
             }
         }
     }
