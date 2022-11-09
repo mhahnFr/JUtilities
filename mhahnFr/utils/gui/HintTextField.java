@@ -98,6 +98,14 @@ public class HintTextField extends JTextField {
     public String getHint() { return hint; }
 
     /**
+     * Returns whether the hint is currently displayed.
+     *
+     * @return whether the hint is showing
+     * @see #getHint()
+     */
+    public boolean isShowingHint() { return getText().equals(hint) && getForeground().equals(HINT_COLOR); }
+
+    /**
      * This class provides the {@link FocusListener} needed to display the
      * hint of the {@link HintTextField} correctly.
      *
@@ -107,7 +115,7 @@ public class HintTextField extends JTextField {
     private class Listener implements FocusListener {
         @Override
         public void focusGained(FocusEvent e) {
-            if (getText().equals(hint) && getForeground().equals(HINT_COLOR)) {
+            if (isShowingHint()) {
                 setText("");
                 setForeground(Color.black);
             }
