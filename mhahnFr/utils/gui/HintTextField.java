@@ -103,7 +103,12 @@ public class HintTextField extends JTextField {
      * @return whether the hint is showing
      * @see #getHint()
      */
-    public boolean isShowingHint() { return getText().equals(hint) && getForeground().equals(HINT_COLOR); }
+    public boolean isShowingHint() { return super.getText().equals(hint) && getForeground().equals(HINT_COLOR); }
+
+    @Override
+    public String getText() {
+        return isShowingHint() ? "" : super.getText();
+    }
 
     /**
      * This class provides the {@link FocusListener} needed to display the
@@ -123,7 +128,7 @@ public class HintTextField extends JTextField {
 
         @Override
         public void focusLost(FocusEvent e) {
-            if (getText().isBlank()) {
+            if (HintTextField.super.getText().isBlank()) {
                 setText(hint);
                 setForeground(HINT_COLOR);
             }
