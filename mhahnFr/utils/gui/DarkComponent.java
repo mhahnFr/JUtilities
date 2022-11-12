@@ -27,6 +27,15 @@ import java.util.Collection;
 /**
  * This class is a wrapper around a given {@link JComponent} to add a universal
  * way to enable a dark mode on the given component.
+ * <br><br>
+ * Using a list of {@link DarkComponent}s ({@code var list = new ArrayList<DarkComponent<? extends JComponent>>()}),
+ * the traditional way of creating a {@link JComponent}:<br>
+ * {@code var label = new JLabel("Hello World!")}<br>
+ * can become<br>
+ * {@code var label = new DarkComponent<>(new JLabel("Hello World!"), list).getComponent()},<br>
+ * allowing to toggle the dark mode by simply iterating through that list:<br>
+ * {@code for (var darkComponent : list) { darkComponent.setDark(true); } }<br>
+ * and preserving the flexibility of Java's Swing Framework.
  *
  * @param <T> the component an instance of this class holds
  *

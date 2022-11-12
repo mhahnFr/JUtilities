@@ -28,6 +28,15 @@ import java.util.Collection;
 /**
  * This class is a wrapper around a given {@link JTextComponent} to add a
  * universal way to enable a dark mode on the given component.
+ * <br><br>
+ * Using a list of {@link DarkComponent}s ({@code var list = new ArrayList<DarkComponent<? extends JComponent>>()}),
+ * the traditional way of creating a {@link JTextComponent}:<br>
+ * {@code var textField = new JTextField("Hello World!")}<br>
+ * can become<br>
+ * {@code var textField = new DarkTextComponent<>(new JTextField("Hello World!"), list).getComponent()},<br>
+ * allowing to toggle the dark mode by simply iterating through that list:<br>
+ * {@code for (var darkComponent : list) { darkComponent.setDark(true); } }<br>
+ * and preserving the flexibility of Java's Swing framework.
  *
  * @param <T> the text component an instance of this class holds
  *
