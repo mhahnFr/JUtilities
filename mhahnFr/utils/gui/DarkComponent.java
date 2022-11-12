@@ -46,6 +46,13 @@ public class DarkComponent<T extends JComponent> {
      */
     public DarkComponent(final T component) { this(component, false); }
 
+    /**
+     * Constructs this wrapper for the given component and appends itself to the given
+     * collection of {@link DarkComponent}s.
+     *
+     * @param component the component to wrap around
+     * @param collection the collection to append this instance to
+     */
     public DarkComponent(final T component, Collection<DarkComponent<? extends JComponent>> collection) {
         this(component);
         addToList(collection);
@@ -79,8 +86,19 @@ public class DarkComponent<T extends JComponent> {
         }
     }
 
+    /**
+     * Returns the underlying component.
+     *
+     * @return the underlying component
+     */
     public T getComponent() { return component; }
 
+    /**
+     * Adds this instance to the given collection and returns itself.
+     *
+     * @param collection the collection to append this instance
+     * @return this instance
+     */
     public DarkComponent<T> addToList(Collection<DarkComponent<? extends JComponent>> collection) {
         collection.add(this);
         return this;

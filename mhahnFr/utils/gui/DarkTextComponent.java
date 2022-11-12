@@ -42,6 +42,13 @@ public class DarkTextComponent<T extends JTextComponent> extends DarkComponent<T
      */
     public DarkTextComponent(final T component) { this(component, false); }
 
+    /**
+     * Constructs this wrapper for the given component and appends itself to
+     * the given collection of {@link DarkComponent}s.
+     *
+     * @param component the component to wrap around
+     * @param collection the collection to append itself to
+     */
     public DarkTextComponent(final T component, Collection<DarkComponent<? extends JComponent>> collection) {
         super(component, collection);
     }
