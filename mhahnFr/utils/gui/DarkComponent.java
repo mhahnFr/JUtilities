@@ -46,6 +46,11 @@ public class DarkComponent<T extends JComponent> {
      */
     public DarkComponent(final T component) { this(component, false); }
 
+    public DarkComponent(final T component, Collection<DarkComponent<? extends JComponent>> collection) {
+        this(component);
+        addToList(collection);
+    }
+
     /**
      * Constructs this wrapper for the given component. The {@code boolean} value
      * indicates whether the given component is already in the dark mode.
@@ -66,7 +71,7 @@ public class DarkComponent<T extends JComponent> {
             this.dark = dark;
             if (dark) {
                 component.setForeground(Color.white);
-                component.setBackground(Color.DARK_GRAY);
+                component.setBackground(Color.darkGray);
             } else {
                 component.setForeground(null);
                 component.setBackground(null);
