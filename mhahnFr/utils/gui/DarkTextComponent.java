@@ -75,6 +75,7 @@ public class DarkTextComponent<T extends JTextComponent> extends DarkComponent<T
     public void setDark(final boolean dark) {
         super.setDark(dark);
         if (dark) {
+            component.setBackground(Color.gray);
             component.setCaretColor(Color.white);
         } else {
             component.setCaretColor(Color.black);
