@@ -39,6 +39,7 @@ public class HintTextField extends JTextField {
     private static final Color HINT_COLOR = Color.lightGray;
     /** The hint that is displayed when this text field is empty and without focus. */
     private final String hint;
+    /** A boolean indicating whether the constructor chain has finished executing.  */
     private final boolean initialized;
 
     /**
