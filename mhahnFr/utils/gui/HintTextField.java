@@ -39,6 +39,7 @@ public class HintTextField extends JTextField {
     private static final Color HINT_COLOR = Color.lightGray;
     /** The hint that is displayed when this text field is empty and without focus. */
     private final String hint;
+    private final boolean initialized;
 
     /**
      * Constructs a normal {@link JTextField}. The given hint is immediately
@@ -51,6 +52,7 @@ public class HintTextField extends JTextField {
         super(hint);
         this.hint = hint;
         init();
+        initialized = true;
     }
 
     /**
@@ -65,6 +67,7 @@ public class HintTextField extends JTextField {
         super(hint, columns);
         this.hint = hint;
         init();
+        initialized = true;
     }
 
     /**
@@ -80,6 +83,7 @@ public class HintTextField extends JTextField {
         super(doc, hint, columns);
         this.hint = hint;
         init();
+        initialized = true;
     }
 
     /**
@@ -110,6 +114,23 @@ public class HintTextField extends JTextField {
         return isShowingHint() ? "" : super.getText();
     }
 
+    @Override
+    public void setForeground(Color fg) {
+        if (!initialized || !isShowingHint()) {
+            super.setForeground(fg);
+        }
+    }
+
+    @Override
+    public void setText(String t) {
+        if (!initialized || !t.isBlank() || hasFocus()) {
+            super.setText(t);
+        } else {
+            super.setText(hint);
+            super.setForeground(HINT_COLOR);
+        }
+    }
+
     /**
      * This class provides the {@link FocusListener} needed to display the
      * hint of the {@link HintTextField} correctly.
@@ -121,7 +142,7 @@ public class HintTextField extends JTextField {
         @Override
         public void focusGained(FocusEvent e) {
             if (isShowingHint()) {
-                setText("");
+                HintTextField.super.setText("");
                 setForeground(null);
             }
         }
