@@ -122,7 +122,7 @@ public class HintTextField extends JTextField {
         public void focusGained(FocusEvent e) {
             if (isShowingHint()) {
                 setText("");
-                setForeground(Color.black);
+                setForeground(null);
             }
         }
 
