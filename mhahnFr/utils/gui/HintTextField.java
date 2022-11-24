@@ -126,6 +126,7 @@ public class HintTextField extends JTextField {
     public void setText(String t) {
         if (!initialized || !t.isBlank() || hasFocus()) {
             super.setText(t);
+            super.setForeground(null);
         } else {
             super.setText(hint);
             super.setForeground(HINT_COLOR);
