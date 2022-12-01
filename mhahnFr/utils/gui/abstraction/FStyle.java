@@ -562,6 +562,20 @@ public class FStyle {
         return cached;
     }
 
+    @Override
+    public String toString() {
+        var toReturn = "FStyle: [ ";
+
+        if (bold != null) toReturn += (bold + ", ");
+        if (italic != null) toReturn += (italic + ", ");
+        if (underlined != null) toReturn += (underlined + ", ");
+        if (strike != null) toReturn += (strike + ", ");
+        if (foreground != null) toReturn += (foreground + ", ");
+        if (background != null) toReturn += (background + ", ");
+
+        return toReturn + " ]";
+    }
+
     /**
      * Returns whether a cached, native style is available.
      *
