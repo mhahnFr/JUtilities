@@ -20,7 +20,6 @@
 package mhahnFr.utils.gui.menu;
 
 import javax.swing.JFrame;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +29,7 @@ import java.util.List;
  * @author mhahnFr
  * @since 12.12.22
  */
-public abstract class MenuFrame extends JFrame implements ActionListener {
+public abstract class MenuFrame extends JFrame {
     /** A list with all active menu frames. */
     private static final List<MenuFrame> menuFrames = new ArrayList<>();
 
