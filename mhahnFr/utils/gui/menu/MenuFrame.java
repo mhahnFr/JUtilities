@@ -64,7 +64,9 @@ public abstract class MenuFrame extends JFrame {
      * @return whether all windows have been closed
      */
     public static boolean vetoableCloseAll() {
-        for (final var window : menuFrames) {
+        final var tempList = new ArrayList<>(menuFrames);
+
+        for (final var window : tempList) {
             if (!window.vetoableDispose()) {
                 return false;
             } else {
