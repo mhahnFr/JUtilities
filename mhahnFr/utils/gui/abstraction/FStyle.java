@@ -1,5 +1,5 @@
 /*
- * SecretPathway - A MUD client.
+ * JUtilities - Some utilities written for Java.
  *
  * Copyright (C) 2022  mhahnFr
  *

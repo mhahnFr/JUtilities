@@ -1,5 +1,5 @@
 /*
- * JVMScript - Scripting language powered by JVM's reflection.
+ * JUtilities - Some utilities written for Java.
  *
  * Copyright (C) 2022  mhahnFr
  *
