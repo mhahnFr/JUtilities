@@ -23,6 +23,7 @@ import javax.swing.JMenuBar;
 import java.awt.*;
 import java.awt.desktop.QuitEvent;
 import java.awt.desktop.QuitResponse;
+import java.awt.event.ActionListener;
 
 /**
  * This class constructs menu-bars.
@@ -37,12 +38,16 @@ public class MenuFactory {
     private boolean about;
     /** Indicates whether the settings are handled globally. */
     private boolean settings;
+    /** Indicates whether the menu-bar has been installed.   */
+    private boolean menubarInstalled;
     /** Indicates whether the menu-bar is globally present.  */
     private final boolean menubar;
     /** The action for About.                                */
     private Runnable aboutAction;
     /** The settings action.                                 */
     private Runnable settingsAction;
+    /** The generator for new menu-bars.                     */
+    private MenuProvider menuProvider;
     /** The one and only instance of this class.             */
     private static MenuFactory instance;
 
@@ -96,7 +101,7 @@ public class MenuFactory {
      *
      * @see #aboutAction
      */
-    private void defaultAboutAction() {
+    protected void defaultAboutAction() {
         if (aboutAction != null) {
             aboutAction.run();
         }
@@ -107,7 +112,7 @@ public class MenuFactory {
      *
      * @see #settingsAction
      */
-    private void defaultSettingsAction() {
+    protected void defaultSettingsAction() {
         if (settingsAction != null) {
             settingsAction.run();
         }
@@ -117,12 +122,18 @@ public class MenuFactory {
      * Creates and returns a new menu-bar. The given listener is used for
      * the menu-items.
      *
-     * @param frame the frame to add the menu-bar to
+     * @param listener the listener to be called by the menu-items
      * @return a new menu-bar
      */
-    public final JMenuBar createMenuBar(MenuFrame frame) {
-        // TODO: Implement
-
+    public final JMenuBar createMenuBar(ActionListener listener) {
+        if (!menubar) {
+            if (menuProvider != null) {
+                return menuProvider.generateMenuBar(listener);
+            }
+        } else if (!menubarInstalled) {
+            Desktop.getDesktop().setDefaultMenuBar(menuProvider.generateMenuBar(listener));
+            menubarInstalled = true;
+        }
         return null;
     }
 
@@ -146,5 +157,49 @@ public class MenuFactory {
      */
     public final void setSettingsAction(final Runnable settingsAction) {
         this.settingsAction = settingsAction;
+    }
+
+    /**
+     * Registers the given {@link MenuProvider}. New menus are generated using
+     * the given provider. Already generated menus are not changed by a change
+     * of the {@link MenuProvider}.
+     *
+     * @param menuProvider the new menu provider
+     */
+    public final void setMenuProvider(final MenuProvider menuProvider) {
+        this.menuProvider = menuProvider;
+    }
+
+    /**
+     * Returns whether a main settings handler exists.
+     *
+     * @return whether the settings are handled globally
+     * @see Desktop#isSupported(Desktop.Action)
+     * @see Desktop.Action#APP_PREFERENCES
+     */
+    public final boolean hasMainSettings() {
+        return settings;
+    }
+
+    /**
+     * Returns whether a main About handler exists.
+     *
+     * @return whether the About action is handled globally
+     * @see Desktop#isSupported(Desktop.Action)
+     * @see Desktop.Action#APP_ABOUT
+     */
+    public final boolean hasMainAbout() {
+        return about;
+    }
+
+    /**
+     * Returns whether a main quit handler exists.
+     *
+     * @return whether the quit action is handled globally
+     * @see Desktop#isSupported(Desktop.Action)
+     * @see Desktop.Action#APP_QUIT_HANDLER
+     */
+    public final boolean hasMainQuit() {
+        return quit;
     }
 }
