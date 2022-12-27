@@ -62,6 +62,10 @@ public class StringStream {
      * @return whether the next characters to be read equal the string
      */
     public boolean peek(final String string) {
+        if (chars.length - index >= string.length()) {
+            return false;
+        }
+
         return source.substring(index).startsWith(string);
     }
 
@@ -69,8 +73,19 @@ public class StringStream {
      * Returns and consumes the next character form this stream.
      *
      * @return the next character in the underlying string
+     * @see #hasNext()
      */
     public char next() {
         return chars[index++];
+    }
+
+    /**
+     * Returns whether there is a next character in this stream.
+     *
+     * @return whether a next character is available
+     * @see #next()
+     */
+    public boolean hasNext() {
+        return index < chars.length;
     }
 }
