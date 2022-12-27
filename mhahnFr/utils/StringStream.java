@@ -28,6 +28,8 @@ package mhahnFr.utils;
 public class StringStream {
     /** The source text.                    */
     private final String source;
+    /** The characters of the source text.  */
+    private final char[] chars;
     /** The current position of the stream. */
     private int index;
 
@@ -38,5 +40,37 @@ public class StringStream {
      */
     public StringStream(final String source) {
         this.source = source;
+        this.chars  = this.source.toCharArray();
+    }
+
+    /**
+     * Returns whether the next character to be read is equal to the
+     * given one.
+     *
+     * @param c the char to be tested
+     * @return whether the next character to be read equals the given one
+     */
+    public boolean peek(char c) {
+        return chars[index] == c;
+    }
+
+    /**
+     * Returns whether the next characters to be read are equal to
+     * the given {@link String}.
+     *
+     * @param string the string to be tested
+     * @return whether the next characters to be read equal the string
+     */
+    public boolean peek(final String string) {
+        return source.substring(index).startsWith(string);
+    }
+
+    /**
+     * Returns and consumes the next character form this stream.
+     *
+     * @return the next character in the underlying string
+     */
+    public char next() {
+        return chars[index++];
     }
 }
