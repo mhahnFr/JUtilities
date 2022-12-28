@@ -70,6 +70,26 @@ public class StringStream {
     }
 
     /**
+     * Skips the given number of characters. The skipped characters are
+     * returned. If attempted to skip more characters than are left in the
+     * stream, all remaining characters are skipped and returned. {@link #hasNext()}
+     * will then return {@code false}.
+     *
+     * @param count the number of characters to be skipped
+     * @return an array with the skipped characters
+     */
+    public char[] skip(int count) {
+        if (chars.length - index >= count) {
+            count = chars.length - index - 1;
+        }
+        char[] toReturn = new char[count + 1];
+        for (int i = 0; i < count; ++i) {
+            toReturn[i] = next();
+        }
+        return toReturn;
+    }
+
+    /**
      * Returns and consumes the next character form this stream.
      *
      * @return the next character in the underlying string
