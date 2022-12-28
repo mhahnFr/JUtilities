@@ -70,6 +70,19 @@ public class StringStream {
     }
 
     /**
+     * Returns the next character that would be read. It does not
+     * check for the bounds, it can (and should) be done using
+     * {@link #hasNext()}.
+     *
+     * @return the next character to be read
+     * @see #hasNext()
+     * @see #next()
+     */
+    public char peek() {
+        return chars[index];
+    }
+
+    /**
      * Reads the given number of characters. The read characters are
      * returned. If attempted to read more characters than are left in the
      * stream, all remaining characters are read and returned. {@link #hasNext()}
