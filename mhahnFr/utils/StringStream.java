@@ -70,15 +70,15 @@ public class StringStream {
     }
 
     /**
-     * Skips the given number of characters. The skipped characters are
-     * returned. If attempted to skip more characters than are left in the
-     * stream, all remaining characters are skipped and returned. {@link #hasNext()}
+     * Reads the given number of characters. The read characters are
+     * returned. If attempted to read more characters than are left in the
+     * stream, all remaining characters are read and returned. {@link #hasNext()}
      * will then return {@code false}.
      *
-     * @param count the number of characters to be skipped
-     * @return an array with the skipped characters
+     * @param count the number of characters to be read
+     * @return an array with the read characters
      */
-    public char[] skip(int count) {
+    public char[] get(int count) {
         if (chars.length - index >= count) {
             count = chars.length - index - 1;
         }
@@ -87,6 +87,31 @@ public class StringStream {
             toReturn[i] = next();
         }
         return toReturn;
+    }
+
+    /**
+     * Skips the given amount of characters. If attempted to skip
+     * more characters than are left in the stream, all remaining
+     * characters are skipped, {@link #hasNext()} will then return
+     * {@code false}.
+     *
+     * @param count the amount of characters to be skipped
+     * @return the new reading index
+     */
+    public int skip(int count) {
+        if (chars.length - index >= count) {
+            count = chars.length - index;
+        }
+        return index += count;
+    }
+
+    /**
+     * Returns the current reading index.
+     *
+     * @return the current reading index
+     */
+    public int getIndex() {
+        return index;
     }
 
     /**
