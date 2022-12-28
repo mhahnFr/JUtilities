@@ -62,7 +62,7 @@ public class StringStream {
      * @return whether the next characters to be read equal the string
      */
     public boolean peek(final String string) {
-        if (chars.length - index >= string.length()) {
+        if (chars.length - index <= string.length()) {
             return false;
         }
 
@@ -92,7 +92,7 @@ public class StringStream {
      * @return an array with the read characters
      */
     public char[] get(int count) {
-        if (chars.length - index >= count) {
+        if (chars.length - index <= count) {
             count = chars.length - index - 1;
         }
         char[] toReturn = new char[count + 1];
@@ -112,7 +112,7 @@ public class StringStream {
      * @return the new reading index
      */
     public int skip(int count) {
-        if (chars.length - index >= count) {
+        if (chars.length - index <= count) {
             count = chars.length - index;
         }
         return index += count;
