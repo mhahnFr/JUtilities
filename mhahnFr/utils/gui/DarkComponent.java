@@ -1,7 +1,7 @@
 /*
- * JUtilities - Some utilities written for Java.
+ * SecretPathway - A MUD client.
  *
- * Copyright (C) 2022  mhahnFr
+ * Copyright (C) 2022 - 2023  mhahnFr
  *
  * This file is part of the SecretPathway. This program is free software:
  * you can redistribute it and/or modify it under the terms of the
@@ -87,7 +87,7 @@ public class DarkComponent<T extends JComponent> {
             this.dark = dark;
             if (dark) {
                 component.setForeground(Color.white);
-                component.setBackground(Color.black);
+                component.setBackground(Color.darkGray);
             } else {
                 component.setForeground(null);
                 component.setBackground(null);

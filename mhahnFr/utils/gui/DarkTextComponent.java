@@ -1,7 +1,7 @@
 /*
- * JUtilities - Some utilities written for Java.
+ * SecretPathway - A MUD client.
  *
- * Copyright (C) 2022  mhahnFr
+ * Copyright (C) 2022 - 2023  mhahnFr
  *
  * This file is part of the SecretPathway. This program is free software:
  * you can redistribute it and/or modify it under the terms of the
@@ -44,6 +44,9 @@ import java.util.Collection;
  * @author mhahnFr
  */
 public class DarkTextComponent<T extends JTextComponent> extends DarkComponent<T> {
+    /** The color to be used as dark color. */
+    protected static final Color darkColor = new Color(36, 36, 36);
+
     /**
      * Constructs this wrapper for the given component.
      *
@@ -75,7 +78,7 @@ public class DarkTextComponent<T extends JTextComponent> extends DarkComponent<T
     public void setDark(final boolean dark) {
         super.setDark(dark);
         if (dark) {
-            component.setBackground(Color.darkGray);
+            component.setBackground(darkColor);
             component.setCaretColor(Color.white);
         } else {
             component.setCaretColor(Color.black);
