@@ -19,6 +19,18 @@
 
 package mhahnFr.utils.gui;
 
+/**
+ * This class defines a listener for the font size.
+ *
+ * @author mhahnFr
+ * @since 09.01.23
+ */
 public interface FontSizeListener {
+    /**
+     * Called when the font size has changed. The new value
+     * is passed as argument.
+     *
+     * @param size the new font size
+     */
     void fontSizeChangedTo(final int size);
 }
