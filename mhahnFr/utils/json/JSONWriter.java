@@ -19,9 +19,15 @@
 
 package mhahnFr.utils.json;
 
+import mhahnFr.utils.Pair;
+import mhahnFr.utils.gui.abstraction.FStyle;
+
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
-import java.util.List;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * This class writes objects into a JSON-format.
@@ -30,39 +36,88 @@ import java.util.List;
  * @since 11.01.23
  */
 public class JSONWriter {
-    private List<Field> getFields(final Object obj) {
-        return null;
+    private final OutputStream out;
+    private Charset charset = StandardCharsets.UTF_8;
+    private boolean humanReadable = false;
+
+    public JSONWriter(OutputStream out) {
+        this.out = out;
     }
 
-    private boolean isPrimitive(final Class<?> c) {
-        return false;
+    public Charset getCharset() {
+        return charset;
     }
 
-    private void writePrimitive(OutputStream out, final Field field, final Object obj) {
+    public void setCharset(Charset charset) {
+        this.charset = charset;
+    }
+
+    private Collection<Field> getFields(final Object obj) {
+        final var declaredFields = obj.getClass().getDeclaredFields();
+        final var publicFields   = obj.getClass().getFields();
+        final var list           = new HashSet<>(Arrays.asList(declaredFields));
+
+        for (final var field : declaredFields) {
+            field.setAccessible(true);
+        }
+
+        list.addAll(Arrays.asList(publicFields));
+
+        return list;
+    }
+
+    private void write(final String string) throws IOException {
+        out.write(string.getBytes(charset));
+    }
+
+    private void writeFieldName(final String name) throws IOException {
+        write("\"" + name + "\":");
+    }
+
+    private void writePrimitive(final Field field, final Object obj) throws IOException {
         // write "name": <primitive>
+        writeFieldName(field.getName());
+        write(obj.toString());
     }
 
-    private void writeObject(OutputStream out, final Field field, final Object obj) throws IllegalAccessException {
+    private void writeObject(final Field field, final Object obj) throws IllegalAccessException, IOException {
         // Write "name":
         // if is collection / dictionary: write [, otherwise {
-        writeTo(out, field.get(obj));
+        writeFieldName(field.getName());
+        final var isCollDict = Collection.class.isAssignableFrom(field.getType());
+        write(isCollDict ? "[" : "{");
+        dump(field.get(obj));
+        write(isCollDict ? "]" : "}");
         // if was collection / dictionary: write ] or }
     }
 
-    public void writeTo(OutputStream out, Object obj) throws IllegalAccessException {
+    public void dump(Object obj) throws IllegalAccessException, IOException {
         // write {
-        final var it = getFields(obj).iterator();
-        while (it.hasNext()) {
-            final var field = it.next();
-            if (isPrimitive(field.getType())) {
-                writePrimitive(out, field, obj);
-            } else {
-                writeObject(out, field, obj);
-            }
-            if (it.hasNext()) {
-                // write ,
+        write("{");
+        if (obj != null) {
+            final var it = getFields(obj).iterator();
+            while (it.hasNext()) {
+                final var field = it.next();
+                if (field.getType().isPrimitive()) {
+                    writePrimitive(field, obj);
+                } else {
+                    writeObject(field, obj);
+                }
+                if (it.hasNext()) {
+                    // write ,
+                    write(",");
+                }
             }
         }
+        write("}");
         // write }
+    }
+
+    public boolean isHumanReadable() {
+        return humanReadable;
+    }
+
+    public void setHumanReadable(boolean humanReadable) {
+        this.humanReadable = humanReadable;
     }
 }
