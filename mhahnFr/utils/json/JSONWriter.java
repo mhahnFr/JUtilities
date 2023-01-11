@@ -132,7 +132,8 @@ public class JSONWriter {
             indent += 4;
         }
         if (obj != null) {
-            final var it = getFields(obj).iterator();
+            final var fields = getFields(obj);
+            final var it     = fields.iterator();
             while (it.hasNext()) {
                 final var field = it.next();
                 if (canDumpDirect(field, obj)) {
@@ -145,7 +146,7 @@ public class JSONWriter {
                     if (humanReadable) { write("\n"); }
                 }
             }
-            if (humanReadable) { write("\n"); }
+            if (humanReadable && !fields.isEmpty()) { write("\n"); }
         }
         if (humanReadable) { indent -= 4; }
         writeIndent("}");
