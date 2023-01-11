@@ -39,6 +39,7 @@ public class JSONWriter {
     private final OutputStream out;
     private Charset charset = StandardCharsets.UTF_8;
     private boolean humanReadable = false;
+    private int indent = 0;
 
     public JSONWriter(OutputStream out) {
         this.out = out;
@@ -70,13 +71,20 @@ public class JSONWriter {
         out.write(string.getBytes(charset));
     }
 
+    private void writeIndent(final String string) throws IOException {
+        write(" ".repeat(Math.max(0, indent)) + string);
+    }
+
     private void writeFieldName(final String name) throws IOException {
-        write("\"" + name + "\":");
+        writeIndent("\"" + name + "\":");
     }
 
     private void writePrimitive(final Field field, final Object obj) throws IOException {
         // write "name": <primitive>
         writeFieldName(field.getName());
+        if (humanReadable) {
+            write(" ");
+        }
         write(obj.toString());
     }
 
@@ -85,15 +93,30 @@ public class JSONWriter {
         // if is collection / dictionary: write [, otherwise {
         writeFieldName(field.getName());
         final var isCollDict = Collection.class.isAssignableFrom(field.getType());
-        write(isCollDict ? "[" : "{");
+        if (humanReadable) {
+            write(" ");
+        }
+        if (isCollDict) {
+            write("[");
+        }
         dump(field.get(obj));
-        write(isCollDict ? "]" : "}");
+        if (isCollDict) {
+            if (humanReadable) {
+                write("\n");
+                indent -= 4;
+            }
+            write("]");
+        }
         // if was collection / dictionary: write ] or }
     }
 
     public void dump(Object obj) throws IllegalAccessException, IOException {
         // write {
         write("{");
+        if (humanReadable) {
+            write("\n");
+            indent += 4;
+        }
         if (obj != null) {
             final var it = getFields(obj).iterator();
             while (it.hasNext()) {
@@ -106,10 +129,19 @@ public class JSONWriter {
                 if (it.hasNext()) {
                     // write ,
                     write(",");
+                    if (humanReadable) {
+                        write("\n");
+                    }
                 }
             }
+            if (humanReadable) {
+                write("\n");
+            }
         }
-        write("}");
+        if (humanReadable) {
+            indent -= 4;
+        }
+        writeIndent("}");
         // write }
     }
 
