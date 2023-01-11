@@ -83,17 +83,18 @@ public class JSONWriter {
 
     private boolean canDumpDirect(final Field field, final Object obj) throws IllegalAccessException {
         final var c = field.getType();
-        return field.get(obj) != null &&
-               (c.isPrimitive() ||
-               c.equals(Boolean.class) ||
-               c.equals(Byte.class) ||
-               c.equals(Short.class) ||
-               c.equals(Integer.class) ||
-               c.equals(Long.class) ||
-               c.equals(Float.class) ||
-               c.equals(Double.class) ||
-               c.equals(String.class) ||
-               c.equals(Character.class));
+        return field.get(obj) != null && (
+                c.isPrimitive()           ||
+                c.equals(Boolean.class)   ||
+                c.equals(Byte.class)      ||
+                c.equals(Short.class)     ||
+                c.equals(Integer.class)   ||
+                c.equals(Long.class)      ||
+                c.equals(Float.class)     ||
+                c.equals(Double.class)    ||
+                c.equals(Character.class) ||
+                c.equals(String.class)
+            );
     }
 
     private void writePrimitive(final Field field, final Object obj) throws IOException, IllegalAccessException {
@@ -158,5 +159,14 @@ public class JSONWriter {
 
     public void setHumanReadable(boolean humanReadable) {
         this.humanReadable = humanReadable;
+    }
+
+    public static void main(String[] __) throws IOException, IllegalAccessException {
+        final var pair = new Pair<>(1, true);
+        final var style = new FStyle();
+        style.setItalic(true);
+        final var writer = new JSONWriter(System.out);
+        writer.setHumanReadable(true);
+        writer.dump(style);
     }
 }
