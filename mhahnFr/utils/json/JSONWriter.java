@@ -80,22 +80,19 @@ public class JSONWriter {
     }
 
     private void writePrimitive(final Field field, final Object obj) throws IOException {
-        // write "name": <primitive>
         writeFieldName(field.getName());
-        if (humanReadable) {
-            write(" ");
-        }
+
+        if (humanReadable) { write(" "); }
+
         write(obj.toString());
     }
 
     private void writeObject(final Field field, final Object obj) throws IllegalAccessException, IOException {
-        // Write "name":
-        // if is collection / dictionary: write [, otherwise {
         writeFieldName(field.getName());
         final var isCollDict = Collection.class.isAssignableFrom(field.getType());
-        if (humanReadable) {
-            write(" ");
-        }
+
+        if (humanReadable) { write(" "); }
+
         if (isCollDict) {
             write("[");
         }
@@ -107,11 +104,9 @@ public class JSONWriter {
             }
             write("]");
         }
-        // if was collection / dictionary: write ] or }
     }
 
     public void dump(Object obj) throws IllegalAccessException, IOException {
-        // write {
         write("{");
         if (humanReadable) {
             write("\n");
@@ -127,22 +122,14 @@ public class JSONWriter {
                     writeObject(field, obj);
                 }
                 if (it.hasNext()) {
-                    // write ,
                     write(",");
-                    if (humanReadable) {
-                        write("\n");
-                    }
+                    if (humanReadable) { write("\n"); }
                 }
             }
-            if (humanReadable) {
-                write("\n");
-            }
+            if (humanReadable) { write("\n"); }
         }
-        if (humanReadable) {
-            indent -= 4;
-        }
+        if (humanReadable) { indent -= 4; }
         writeIndent("}");
-        // write }
     }
 
     public boolean isHumanReadable() {
