@@ -25,6 +25,7 @@ import mhahnFr.utils.gui.abstraction.FStyle;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -56,13 +57,14 @@ public class JSONWriter {
     private Collection<Field> getFields(final Object obj) {
         final var declaredFields = obj.getClass().getDeclaredFields();
         final var publicFields   = obj.getClass().getFields();
-        final var list           = new HashSet<>(Arrays.asList(declaredFields));
+        final var list           = new HashSet<>(Arrays.asList(publicFields));
 
         for (final var field : declaredFields) {
-            field.setAccessible(true);
+            try {
+                field.setAccessible(true);
+                list.add(field);
+            } catch (InaccessibleObjectException ignored) {}
         }
-
-        list.addAll(Arrays.asList(publicFields));
 
         return list;
     }
@@ -79,12 +81,29 @@ public class JSONWriter {
         writeIndent("\"" + name + "\":");
     }
 
-    private void writePrimitive(final Field field, final Object obj) throws IOException {
+    private boolean canDumpDirect(final Field field, final Object obj) throws IllegalAccessException {
+        final var c = field.getType();
+        return field.get(obj) != null &&
+               (c.isPrimitive() ||
+               c.equals(Boolean.class) ||
+               c.equals(Byte.class) ||
+               c.equals(Short.class) ||
+               c.equals(Integer.class) ||
+               c.equals(Long.class) ||
+               c.equals(Float.class) ||
+               c.equals(Double.class) ||
+               c.equals(String.class) ||
+               c.equals(Character.class));
+    }
+
+    private void writePrimitive(final Field field, final Object obj) throws IOException, IllegalAccessException {
         writeFieldName(field.getName());
 
         if (humanReadable) { write(" "); }
 
-        write(obj.toString());
+        if (obj instanceof String) { write("\""); }
+        write(field.get(obj).toString());
+        if (obj instanceof String) { write("\""); }
     }
 
     private void writeObject(final Field field, final Object obj) throws IllegalAccessException, IOException {
@@ -116,7 +135,7 @@ public class JSONWriter {
             final var it = getFields(obj).iterator();
             while (it.hasNext()) {
                 final var field = it.next();
-                if (field.getType().isPrimitive()) {
+                if (canDumpDirect(field, obj)) {
                     writePrimitive(field, obj);
                 } else {
                     writeObject(field, obj);
