@@ -87,8 +87,10 @@ public class JSONWriter {
     }
 
     private boolean canDumpDirect(final Field field, final Object obj) throws IllegalAccessException {
-        final var c = field.getType();
-        return field.get(obj) != null && (
+        final var content = field.get(obj);
+        final var c       = content == null ? null : content.getClass();
+
+        return content != null && (
                 c.isPrimitive()           ||
                 c.equals(Boolean.class)   ||
                 c.equals(Byte.class)      ||
@@ -98,7 +100,8 @@ public class JSONWriter {
                 c.equals(Float.class)     ||
                 c.equals(Double.class)    ||
                 c.equals(Character.class) ||
-                c.equals(String.class)
+                c.equals(String.class)    ||
+                Enum.class.isAssignableFrom(c)
             );
     }
 
@@ -107,9 +110,12 @@ public class JSONWriter {
 
         if (humanReadable) { write(" "); }
 
-        if (obj instanceof String) { write("\""); }
-        write(field.get(obj).toString());
-        if (obj instanceof String) { write("\""); }
+        final var content = field.get(obj);
+        final var needsQuotation = content instanceof String || content instanceof Enum;
+
+        if (needsQuotation) { write("\""); }
+        write(content.toString());
+        if (needsQuotation) { write("\""); }
     }
 
     private void writeObject(final Field field, final Object obj) throws IllegalAccessException, IOException {
