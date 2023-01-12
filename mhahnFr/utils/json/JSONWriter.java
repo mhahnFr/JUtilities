@@ -100,6 +100,14 @@ public class JSONWriter {
         out.write(string.getBytes(charset));
     }
 
+    private void writeComma() throws IOException {
+        write(",");
+
+        if (humanReadable) {
+            write("\n");
+        }
+    }
+
     private void writeIndent(final String string) throws IOException {
         write(" ".repeat(Math.max(0, indent)) + string);
     }
@@ -153,31 +161,11 @@ public class JSONWriter {
         while (it.hasNext()) {
             final var entry = it.next();
 
-            final var key = entry.getKey();
+            dumpArrayElement(entry.getKey());
+            writeComma();
+            dumpArrayElement(entry.getValue());
 
-            writeIndent("");
-            if (canDumpDirect(key)) {
-                writePrimitive(key);
-            } else {
-                writeObject(key);
-            }
-
-            write(",");
-            if (humanReadable) { write("\n"); }
-
-            final var value = entry.getValue();
-
-            writeIndent("");
-            if (canDumpDirect(value)) {
-                writePrimitive(value);
-            } else {
-                writeObject(value);
-            }
-
-            if (it.hasNext()) {
-                write(",");
-                if (humanReadable) { write("\n"); }
-            }
+            if (it.hasNext()) { writeComma(); }
         }
     }
 
@@ -186,17 +174,9 @@ public class JSONWriter {
         while (it.hasNext()) {
             final var element = it.next();
 
-            writeIndent("");
-            if (canDumpDirect(element)) {
-                writePrimitive(element);
-            } else {
-                writeObject(element);
-            }
+            dumpArrayElement(element);
 
-            if (it.hasNext()) {
-                write(",");
-                if (humanReadable) { write("\n"); }
-            }
+            if (it.hasNext()) { writeComma(); }
         }
     }
 
@@ -206,19 +186,18 @@ public class JSONWriter {
         for (int i = 0; i < length; ++i) {
             final var element = Array.get(array, i);
 
-            writeIndent("");
-            if (canDumpDirect(element)) {
-                writePrimitive(element);
-            } else {
-                writeObject(element);
-            }
+            dumpArrayElement(element);
 
-            if (i + 1 < length) {
-                write(",");
-                if (humanReadable) {
-                    write("\n");
-                }
-            }
+            if (i + 1 < length) { writeComma(); }
+        }
+    }
+
+    private void dumpArrayElement(final Object obj) throws IOException, IllegalAccessException {
+        writeIndent("");
+        if (canDumpDirect(obj)) {
+            writePrimitive(obj);
+        } else {
+            writeObject(obj);
         }
     }
 
@@ -286,10 +265,7 @@ public class JSONWriter {
                 } else {
                     writeObject(field, obj);
                 }
-                if (it.hasNext()) {
-                    write(",");
-                    if (humanReadable) { write("\n"); }
-                }
+                if (it.hasNext()) { writeComma(); }
             }
             if (humanReadable && !fields.isEmpty()) { write("\n"); }
         }
