@@ -116,11 +116,6 @@ public class JSONWriter {
         writeIndent("\"" + name + "\":");
     }
 
-    private boolean canDumpDirect(final Field field, final Object obj) throws IllegalAccessException {
-        final var content = field.get(obj);
-        return canDumpDirect(content);
-    }
-
     private boolean canDumpDirect(final Object obj) {
         final var c = obj == null ? null : obj.getClass();
 
@@ -144,8 +139,7 @@ public class JSONWriter {
 
         if (humanReadable) { write(" "); }
 
-        final var content = field.get(obj);
-        writePrimitive(content);
+        writePrimitive(field.get(obj));
     }
 
     private void writePrimitive(final Object obj) throws IOException {
@@ -206,8 +200,7 @@ public class JSONWriter {
 
         if (humanReadable) { write(" "); }
 
-        final var content = field.get(obj);
-        writeObject(content);
+        writeObject(field.get(obj));
     }
 
     private void writeObject(final Object obj) throws IOException, IllegalAccessException {
@@ -259,13 +252,17 @@ public class JSONWriter {
             final var fields = getFields(obj);
             final var it     = fields.iterator();
             while (it.hasNext()) {
-                final var field = it.next();
-                if (canDumpDirect(field, obj)) {
-                    writePrimitive(field, obj);
-                } else {
-                    writeObject(field, obj);
+                final var field   = it.next();
+                final var content = field.get(obj);
+
+                if (content != null) {
+                    if (canDumpDirect(content)) {
+                        writePrimitive(field, obj);
+                    } else {
+                        writeObject(field, obj);
+                    }
+                    if (it.hasNext()) { writeComma(); }
                 }
-                if (it.hasNext()) { writeComma(); }
             }
             if (humanReadable && !fields.isEmpty()) { write("\n"); }
         }
