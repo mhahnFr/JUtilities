@@ -21,8 +21,8 @@ package mhahnFr.utils.json;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -88,9 +88,13 @@ public class JSONWriter {
 
     private boolean canDumpDirect(final Field field, final Object obj) throws IllegalAccessException {
         final var content = field.get(obj);
-        final var c       = content == null ? null : content.getClass();
+        return canDumpDirect(content);
+    }
 
-        return content != null && (
+    private boolean canDumpDirect(final Object obj) {
+        final var c = obj == null ? null : obj.getClass();
+
+        return obj != null && (
                 c.isPrimitive()           ||
                 c.equals(Boolean.class)   ||
                 c.equals(Byte.class)      ||
@@ -102,7 +106,7 @@ public class JSONWriter {
                 c.equals(Character.class) ||
                 c.equals(String.class)    ||
                 Enum.class.isAssignableFrom(c)
-            );
+        );
     }
 
     private void writePrimitive(final Field field, final Object obj) throws IOException, IllegalAccessException {
@@ -111,24 +115,107 @@ public class JSONWriter {
         if (humanReadable) { write(" "); }
 
         final var content = field.get(obj);
-        final var needsQuotation = content instanceof String || content instanceof Enum;
+        writePrimitive(content);
+    }
+
+    private void writePrimitive(final Object obj) throws IOException {
+        final var needsQuotation = obj instanceof String || obj instanceof Enum;
 
         if (needsQuotation) { write("\""); }
-        write(content.toString());
+        write(obj.toString());
         if (needsQuotation) { write("\""); }
+    }
+
+    private void dumpDictionary(final Map<?, ?> dict) throws IOException, IllegalAccessException {
+        final var it = dict.entrySet().iterator();
+        while (it.hasNext()) {
+            final var entry = it.next();
+
+            final var key = entry.getKey();
+
+            if (canDumpDirect(key)) {
+                writePrimitive(key);
+            } else {
+                writeObject(key);
+            }
+
+            write(",");
+
+            final var value = entry.getValue();
+
+            if (canDumpDirect(value)) {
+                writePrimitive(value);
+            } else {
+                writeObject(value);
+            }
+
+            if (it.hasNext()) { write(","); }
+        }
+    }
+
+    private void dumpList(final Collection<?> list) throws IOException, IllegalAccessException {
+        final var it = list.iterator();
+        while (it.hasNext()) {
+            final var element = it.next();
+
+            if (canDumpDirect(element)) {
+                writePrimitive(element);
+            } else {
+                writeObject(element);
+            }
+
+            if (it.hasNext()) { write(","); }
+        }
+    }
+
+    private void dumpArray(final Object array) throws IOException, IllegalAccessException {
+        final var length = Array.getLength(array);
+
+        for (int i = 0; i < length; ++i) {
+            final var element = Array.get(array, i);
+
+            if (canDumpDirect(element)) {
+                writePrimitive(element);
+            } else {
+                writeObject(element);
+            }
+
+            if (i + 1 < length) {
+                write(",");
+            }
+        }
     }
 
     private void writeObject(final Field field, final Object obj) throws IllegalAccessException, IOException {
         writeFieldName(field.getName());
-        final var isCollDict = Collection.class.isAssignableFrom(field.getType());
+
+        final var content = field.get(obj);
+        writeObject(content);
+    }
+
+    private void writeObject(final Object obj) throws IOException, IllegalAccessException {
+        final var c = obj.getClass();
+
+        final var isCollection = Collection.class.isAssignableFrom(c);
+        final var isDictionary = Map.class.isAssignableFrom(c);
+        final var isArray      = c.isArray();
 
         if (humanReadable) { write(" "); }
 
-        if (isCollDict) {
+        if (isCollection || isDictionary || isArray) {
             write("[");
+
+            if (isDictionary) {
+                dumpDictionary((Map<?, ?>) obj);
+            } else if (isCollection) {
+                dumpList((Collection<?>) obj);
+            } else {
+                dumpArray(obj);
+            }
+        } else {
+            dump(obj);
         }
-        dump(field.get(obj));
-        if (isCollDict) {
+        if (isCollection || isDictionary || isArray) {
             if (humanReadable) {
                 write("\n");
                 indent -= 4;
