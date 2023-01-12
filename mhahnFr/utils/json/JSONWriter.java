@@ -210,6 +210,11 @@ public class JSONWriter {
     }
 
     private void writeObject(final Object obj) throws IOException, IllegalAccessException {
+        if (obj == null) {
+            write("{}");
+            return;
+        }
+
         final var c = obj.getClass();
 
         final var isCollection = Collection.class.isAssignableFrom(c);
