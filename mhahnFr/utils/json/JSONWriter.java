@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -54,13 +55,20 @@ public class JSONWriter {
     private Collection<Field> getFields(final Object obj) {
         final var declaredFields = obj.getClass().getDeclaredFields();
         final var publicFields   = obj.getClass().getFields();
-        final var list           = new HashSet<>(Arrays.asList(publicFields));
+        final var list           = new HashSet<Field>();
+
+        for (final var field : publicFields) {
+            if (!Modifier.isStatic(field.getModifiers())) {
+                list.add(field);
+            }
+        }
 
         for (final var field : declaredFields) {
-            try {
-                field.setAccessible(true);
-                list.add(field);
-            } catch (InaccessibleObjectException ignored) {}
+            if (!Modifier.isStatic(field.getModifiers())) {
+                if (field.trySetAccessible()) {
+                    list.add(field);
+                }
+            }
         }
 
         return list;
