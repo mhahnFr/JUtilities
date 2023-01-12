@@ -19,9 +19,6 @@
 
 package mhahnFr.utils.json;
 
-import mhahnFr.utils.Pair;
-import mhahnFr.utils.gui.abstraction.FStyle;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
@@ -159,14 +156,5 @@ public class JSONWriter {
 
     public void setHumanReadable(boolean humanReadable) {
         this.humanReadable = humanReadable;
-    }
-
-    public static void main(String[] __) throws IOException, IllegalAccessException {
-        final var pair = new Pair<>(1, true);
-        final var style = new FStyle();
-        style.setItalic(true);
-        final var writer = new JSONWriter(System.out);
-        writer.setHumanReadable(true);
-        writer.dump(style);
     }
 }
