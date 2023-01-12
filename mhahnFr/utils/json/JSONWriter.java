@@ -133,6 +133,7 @@ public class JSONWriter {
 
             final var key = entry.getKey();
 
+            writeIndent("");
             if (canDumpDirect(key)) {
                 writePrimitive(key);
             } else {
@@ -140,16 +141,21 @@ public class JSONWriter {
             }
 
             write(",");
+            if (humanReadable) { write("\n"); }
 
             final var value = entry.getValue();
 
+            writeIndent("");
             if (canDumpDirect(value)) {
                 writePrimitive(value);
             } else {
                 writeObject(value);
             }
 
-            if (it.hasNext()) { write(","); }
+            if (it.hasNext()) {
+                write(",");
+                if (humanReadable) { write("\n"); }
+            }
         }
     }
 
@@ -158,13 +164,17 @@ public class JSONWriter {
         while (it.hasNext()) {
             final var element = it.next();
 
+            writeIndent("");
             if (canDumpDirect(element)) {
                 writePrimitive(element);
             } else {
                 writeObject(element);
             }
 
-            if (it.hasNext()) { write(","); }
+            if (it.hasNext()) {
+                write(",");
+                if (humanReadable) { write("\n"); }
+            }
         }
     }
 
@@ -174,6 +184,7 @@ public class JSONWriter {
         for (int i = 0; i < length; ++i) {
             final var element = Array.get(array, i);
 
+            writeIndent("");
             if (canDumpDirect(element)) {
                 writePrimitive(element);
             } else {
@@ -182,12 +193,17 @@ public class JSONWriter {
 
             if (i + 1 < length) {
                 write(",");
+                if (humanReadable) {
+                    write("\n");
+                }
             }
         }
     }
 
     private void writeObject(final Field field, final Object obj) throws IllegalAccessException, IOException {
         writeFieldName(field.getName());
+
+        if (humanReadable) { write(" "); }
 
         final var content = field.get(obj);
         writeObject(content);
@@ -200,10 +216,13 @@ public class JSONWriter {
         final var isDictionary = Map.class.isAssignableFrom(c);
         final var isArray      = c.isArray();
 
-        if (humanReadable) { write(" "); }
-
         if (isCollection || isDictionary || isArray) {
             write("[");
+
+            if (humanReadable) {
+                write("\n");
+                indent += 4;
+            }
 
             if (isDictionary) {
                 dumpDictionary((Map<?, ?>) obj);
@@ -220,7 +239,7 @@ public class JSONWriter {
                 write("\n");
                 indent -= 4;
             }
-            write("]");
+            writeIndent("]");
         }
     }
 
