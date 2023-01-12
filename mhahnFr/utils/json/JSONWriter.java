@@ -35,19 +35,41 @@ import java.util.*;
  * @since 11.01.23
  */
 public class JSONWriter {
+    /** The output stream to write the JSON data to.        */
     private final OutputStream out;
+    /** The charset to be used, defaults to UTF-8.          */
     private Charset charset = StandardCharsets.UTF_8;
+    /** Indicates whether to write in a human-readable way. */
     private boolean humanReadable = false;
+    /** The current indentation level.                      */
     private int indent = 0;
 
+    /**
+     * Constructs this writer using the given output stream.
+     *
+     * @param out the output stream to be used
+     * @throws NullPointerException in case no output stream is given
+     */
     public JSONWriter(OutputStream out) {
+        if (out == null) throw new NullPointerException("The output stream must not be null!");
+
         this.out = out;
     }
 
+    /**
+     * Returns the currently used charset.
+     *
+     * @return the charset used for writing
+     */
     public Charset getCharset() {
         return charset;
     }
 
+    /**
+     * Sets the charset used for writing.
+     *
+     * @param charset the charset to be used for the writing
+     */
     public void setCharset(Charset charset) {
         this.charset = charset;
     }
@@ -275,10 +297,22 @@ public class JSONWriter {
         writeIndent("}");
     }
 
+    /**
+     * Returns whether the output will be formatted in a
+     * human-readable way.
+     *
+     * @return whether the output is human-readable
+     */
     public boolean isHumanReadable() {
         return humanReadable;
     }
 
+    /**
+     * Sets whether the JSON data should be written in
+     * a human-readable way.
+     *
+     * @param humanReadable whether to write human-readable
+     */
     public void setHumanReadable(boolean humanReadable) {
         this.humanReadable = humanReadable;
     }
