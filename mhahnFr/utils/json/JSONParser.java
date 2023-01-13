@@ -21,8 +21,13 @@ package mhahnFr.utils.json;
 
 import mhahnFr.utils.StringStream;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * This class parses JSON data.
@@ -101,26 +106,71 @@ public class JSONParser {
         } while (peekConsume(","));
     }
 
-    private void readField(Object obj) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        skipWhitespaces();
-        final var fieldName = readField();
-
-        final var field = getField(obj, fieldName);
+    private Object readObject(final Class<?> c) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         skipWhitespaces();
         if (stream.peek('{')) {
             // object
-            final var value = field.getType().getConstructor().newInstance();
+            final var value = c.getConstructor().newInstance();
             readInto(value);
-            field.set(obj, value);
-        } else if (stream.peek('[')) {
+            return value;
+        } else if (peekConsume("[")) {
             // collection
+            if (c.isArray()) {
+                final var underlying = c.componentType();
+                skipWhitespaces();
+                if (peekConsume("]")) {
+                    return Array.newInstance(underlying, 0);
+                }
+                final var list = new ArrayList<>();
+                do {
+                    list.add(readObject(underlying));
+                } while (peekConsume(","));
+                skipWhitespaces();
+                expect("]");
+
+                final var toReturn = Array.newInstance(underlying, list.size());
+                for (int i = 0; i < list.size(); ++i) {
+                    Array.set(toReturn, i, list.get(i));
+                }
+                return toReturn;
+            } else if (Collection.class.isAssignableFrom(c)) {
+                /*final Collection collection;
+                if (c.isInterface()) {
+                    collection = new ArrayList<>();
+                } else {
+                    collection = (Collection) c.getConstructor().newInstance();
+                }
+
+                stream.skip();
+                skipWhitespaces();
+
+                if (stream.peek(']')) {
+
+                } else {
+                    final var underlying = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+                    do {
+                        collection.add(readObject(underlying));
+                    } while (!peekConsume(","));
+                    expect("]");
+                }
+
+//                final var type = (ParameterizedType) field.getGenericType();
+//                final var a = (Class<?>) type.getActualTypeArguments()[0];
+//                System.out.println(a);
+
+                return collection;*/
+            } else if (Map.class.isAssignableFrom(c)) {
+
+            } else {
+                // Problem!
+            }
         } else if (stream.peek('"')) {
             // string or enum
             final var buffer = readString();
-            if (Enum.class.isAssignableFrom(field.getType())) {
-                field.set(obj, field.getType().getMethod("valueOf", String.class).invoke(null, buffer));
+            if (Enum.class.isAssignableFrom(c)) {
+                return c.getMethod("valueOf", String.class).invoke(null, buffer);
             } else {
-                field.set(obj, buffer);
+                return buffer;
             }
         } else {
             // raw value
@@ -128,26 +178,34 @@ public class JSONParser {
             while (stream.hasNext() && !(Character.isWhitespace(stream.peek()) || stream.peek(',') || stream.peek('}') || stream.peek(']'))) {
                 buffer.append(stream.next());
             }
-            final var c = field.getType();
             final var string = buffer.toString();
             final var isTrue = string.equals("true");
             final var isFalse = string.equals("false");
             if (isTrue || isFalse) {
-                field.set(obj, isTrue);
+                return isTrue;
             } else if (c.equals(Byte.class) || c.equals(Byte.TYPE)) {
-                field.set(obj, Byte.decode(string));
+                return Byte.decode(string);
             } else if (c.equals(Short.class) || c.equals(Short.TYPE)) {
-                field.set(obj, Short.decode(string));
+                return Short.decode(string);
             } else if (c.equals(Integer.class) || c.equals(Integer.TYPE)) {
-                field.set(obj, Integer.decode(string));
+                return Integer.decode(string);
             } else if (c.equals(Long.class) || c.equals(Long.TYPE)) {
-                field.set(obj, Long.decode(string));
+                return Long.decode(string);
             } else if (c.equals(Float.class) || c.equals(Float.TYPE)) {
-                field.set(obj, Float.valueOf(string));
+                return Float.valueOf(string);
             } else {
-                field.set(obj, Double.valueOf(string));
+                return Double.valueOf(string);
             }
         }
+        return null;
+    }
+
+    private void readField(Object obj) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        skipWhitespaces();
+
+        final var field = getField(obj, readField());
+
+        field.set(obj, readObject(field.getType()));
     }
 
     public void readInto(Object obj) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
