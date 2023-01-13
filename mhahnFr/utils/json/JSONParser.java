@@ -106,7 +106,7 @@ public class JSONParser {
         } while (peekConsume(","));
     }
 
-    private Object readObject(final Class<?> c) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private Object readObject(final Class<?> c, final java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         skipWhitespaces();
         if (stream.peek('{')) {
             // object
@@ -123,7 +123,7 @@ public class JSONParser {
                 }
                 final var list = new ArrayList<>();
                 do {
-                    list.add(readObject(underlying));
+                    list.add(readObject(underlying, type));
                 } while (peekConsume(","));
                 skipWhitespaces();
                 expect("]");
@@ -134,7 +134,7 @@ public class JSONParser {
                 }
                 return toReturn;
             } else if (Collection.class.isAssignableFrom(c)) {
-                /*final Collection collection;
+                final Collection collection;
                 if (c.isInterface()) {
                     collection = new ArrayList<>();
                 } else {
@@ -147,18 +147,14 @@ public class JSONParser {
                 if (stream.peek(']')) {
 
                 } else {
-                    final var underlying = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+                    final var underlying = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
                     do {
-                        collection.add(readObject(underlying));
-                    } while (!peekConsume(","));
+                        collection.add(readObject(underlying, type));
+                    } while (peekConsume(","));
+                    skipWhitespaces();
                     expect("]");
                 }
-
-//                final var type = (ParameterizedType) field.getGenericType();
-//                final var a = (Class<?>) type.getActualTypeArguments()[0];
-//                System.out.println(a);
-
-                return collection;*/
+                return collection;
             } else if (Map.class.isAssignableFrom(c)) {
 
             } else {
@@ -205,7 +201,7 @@ public class JSONParser {
 
         final var field = getField(obj, readField());
 
-        field.set(obj, readObject(field.getType()));
+        field.set(obj, readObject(field.getType(), field.getGenericType()));
     }
 
     public void readInto(Object obj) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
