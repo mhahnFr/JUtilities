@@ -74,9 +74,17 @@ public class JSONWriter {
         this.charset = charset;
     }
 
+    /**
+     * Returns a collection of all accessible and non-static fields
+     * of the class of the given object.
+     *
+     * @param obj the object whose fields to get
+     * @return a collection with all accessible fields
+     */
     private Collection<Field> getFields(final Object obj) {
-        final var declaredFields = obj.getClass().getDeclaredFields();
-        final var publicFields   = obj.getClass().getFields();
+        final var c              = obj.getClass();
+        final var declaredFields = c.getDeclaredFields();
+        final var publicFields   = c.getFields();
         final var list           = new HashSet<Field>();
 
         for (final var field : publicFields) {
@@ -96,26 +104,71 @@ public class JSONWriter {
         return list;
     }
 
+    /**
+     * Writes the given string using the set charset.
+     *
+     * @param string the string to be written
+     * @throws IOException if an I/O error occurs
+     * @see #setCharset(Charset)
+     * @see #getCharset()
+     * @see #charset
+     */
     private void write(final String string) throws IOException {
         out.write(string.getBytes(charset));
     }
 
+    /**
+     * Writes a comma. If the output should be human-readable,
+     * a newline is written after the comma.
+     *
+     * @throws IOException if an I/O error occurs
+     * @see #write(String)
+     * @see #humanReadable
+     * @see #isHumanReadable()
+     * @see #setHumanReadable(boolean)
+     */
     private void writeComma() throws IOException {
         write(",");
 
         if (humanReadable) { write("\n"); }
     }
 
+    /**
+     * Writes the given string indented.
+     *
+     * @param string the string to write
+     * @throws IOException if an I/O error occurs
+     * @see #write(String)
+     * @see #indent
+     */
     private void writeIndent(final String string) throws IOException {
         write(" ".repeat(Math.max(0, indent)) + string);
     }
 
+    /**
+     * Writes the name of a field. If the output should be
+     * human-readable, a space is written after it.
+     *
+     * @param name the name of the field to be written
+     * @throws IOException if an I/O error occurs
+     * @see #writeIndent(String)
+     * @see #humanReadable
+     * @see #isHumanReadable()
+     * @see #setHumanReadable(boolean)
+     */
     private void writeFieldName(final String name) throws IOException {
         writeIndent("\"" + name + "\":");
 
         if (humanReadable) { write(" "); }
     }
 
+    /**
+     * Returns whether the given object can be written using
+     * its {@link Object#toString() toString()} method.
+     *
+     * @param obj the object to be checked
+     * @return whether the given object can be written as a string
+     */
     private boolean canDumpDirect(final Object obj) {
         final var c = obj == null ? null : obj.getClass();
 
@@ -134,11 +187,15 @@ public class JSONWriter {
             );
     }
 
-    private void writePrimitive(final Field field, final Object obj) throws IOException, IllegalAccessException {
-        writeFieldName(field.getName());
-        writePrimitive(field.get(obj));
-    }
-
+    /**
+     * Writes a primitive object. That is, the object is dumped using
+     * its {@link Object#toString() toString()} method. The object is
+     * quoted if necessary.
+     *
+     * @param obj the object to be dumped
+     * @throws IOException if an I/O error occurs
+     * @see #write(String)
+     */
     private void writePrimitive(final Object obj) throws IOException {
         final var needsQuotation = obj instanceof String || obj instanceof Enum;
 
@@ -147,6 +204,15 @@ public class JSONWriter {
         if (needsQuotation) { write("\""); }
     }
 
+    /**
+     * Dumps the given dictionary.
+     *
+     * @param dict the dictionary to be dumped
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalAccessException if a field of a dumped object cannot be accessed
+     * @see #dumpArrayElement(Object)
+     * @see #writeComma()
+     */
     private void dumpDictionary(final Map<?, ?> dict) throws IOException, IllegalAccessException {
         final var it = dict.entrySet().iterator();
         while (it.hasNext()) {
@@ -160,6 +226,15 @@ public class JSONWriter {
         }
     }
 
+    /**
+     * Dumps the given list.
+     *
+     * @param list the list to be dumped
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalAccessException if a field of a dumped object cannot be accessed
+     * @see #dumpArrayElement(Object)
+     * @see #writeComma()
+     */
     private void dumpList(final Collection<?> list) throws IOException, IllegalAccessException {
         final var it = list.iterator();
         while (it.hasNext()) {
@@ -169,6 +244,15 @@ public class JSONWriter {
         }
     }
 
+    /**
+     * Dumps the given array.
+     *
+     * @param array the array to be dumped
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalAccessException if a field of a dumped object cannot be accessed
+     * @see #dumpArrayElement(Object)
+     * @see #writeComma()
+     */
     private void dumpArray(final Object array) throws IOException, IllegalAccessException {
         final var length = Array.getLength(array);
 
@@ -179,6 +263,19 @@ public class JSONWriter {
         }
     }
 
+    /**
+     * Dumps the given object as a collection element. If it can
+     * be dumped direct, it is written as a primitive, otherwise
+     * it is written as an object.
+     *
+     * @param obj the object to be written
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalAccessException if a field of a dumped object cannot be accessed
+     * @see #canDumpDirect(Object)
+     * @see #writePrimitive(Object)
+     * @see #writeObject(Object)
+     * @see #writeIndent(String)
+     */
     private void dumpArrayElement(final Object obj) throws IOException, IllegalAccessException {
         writeIndent("");
         if (canDumpDirect(obj)) {
@@ -188,11 +285,26 @@ public class JSONWriter {
         }
     }
 
-    private void writeObject(final Field field, final Object obj) throws IllegalAccessException, IOException {
-        writeFieldName(field.getName());
-        writeObject(field.get(obj));
-    }
-
+    /**
+     * Writes the given object. If the given object is a collection
+     * type, it is written as a collection, otherwise it is dumped
+     * using {@link #dump(Object)}.
+     * The output is formatted human-readable if set.
+     *
+     * @param obj the object to be written
+     * @throws IOException if an I/O error occurs
+     * @throws IllegalAccessException if a field of a dumped object cannot be accessed
+     * @see #write(String)
+     * @see #writeIndent(String)
+     * @see #indent
+     * @see #dump(Object)
+     * @see #dumpArray(Object)
+     * @see #dumpDictionary(Map)
+     * @see #dumpList(Collection)
+     * @see #humanReadable
+     * @see #isHumanReadable()
+     * @see #setHumanReadable(boolean)
+     */
     private void writeObject(final Object obj) throws IOException, IllegalAccessException {
         final var c = obj.getClass();
 
@@ -227,6 +339,14 @@ public class JSONWriter {
         }
     }
 
+    /**
+     * Writes the given object to the set output stream using the JSON
+     * format.
+     *
+     * @param obj the object to be dumped
+     * @throws IllegalAccessException if a field of the object cannot be accessed
+     * @throws IOException if an I/O error occurs
+     */
     public void dump(Object obj) throws IllegalAccessException, IOException {
         write("{");
         if (humanReadable) {
@@ -242,10 +362,11 @@ public class JSONWriter {
                 final var content = field.get(obj);
 
                 if (content != null) {
+                    writeFieldName(field.getName());
                     if (canDumpDirect(content)) {
-                        writePrimitive(field, obj);
+                        writePrimitive(content);
                     } else {
-                        writeObject(field, obj);
+                        writeObject(content);
                     }
                     if (it.hasNext()) { writeComma(); }
                 }
