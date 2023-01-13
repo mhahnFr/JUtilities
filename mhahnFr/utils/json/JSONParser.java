@@ -111,6 +111,7 @@ public class JSONParser {
             // object
             final var value = field.getType().getConstructor().newInstance();
             readInto(value);
+            field.set(obj, value);
         } else if (stream.peek('[')) {
             // collection
         } else if (stream.peek('"')) {
