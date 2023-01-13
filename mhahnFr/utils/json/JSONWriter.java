@@ -357,18 +357,21 @@ public class JSONWriter {
             final var fields = getFields(obj);
             final var it     = fields.iterator();
 
+            boolean needsComma = false;
             while (it.hasNext()) {
                 final var field   = it.next();
                 final var content = field.get(obj);
 
                 if (content != null) {
+                    if (needsComma) { writeComma(); }
+
                     writeFieldName(field.getName());
                     if (canDumpDirect(content)) {
                         writePrimitive(content);
                     } else {
                         writeObject(content);
                     }
-                    if (it.hasNext()) { writeComma(); }
+                    if (it.hasNext()) { needsComma = true; }
                 }
             }
             if (humanReadable && !fields.isEmpty()) { write("\n"); }
