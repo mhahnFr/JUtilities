@@ -103,9 +103,7 @@ public class JSONWriter {
     private void writeComma() throws IOException {
         write(",");
 
-        if (humanReadable) {
-            write("\n");
-        }
+        if (humanReadable) { write("\n"); }
     }
 
     private void writeIndent(final String string) throws IOException {
@@ -114,6 +112,8 @@ public class JSONWriter {
 
     private void writeFieldName(final String name) throws IOException {
         writeIndent("\"" + name + "\":");
+
+        if (humanReadable) { write(" "); }
     }
 
     private boolean canDumpDirect(final Object obj) {
@@ -131,14 +131,11 @@ public class JSONWriter {
                 c.equals(Character.class) ||
                 c.equals(String.class)    ||
                 Enum.class.isAssignableFrom(c)
-        );
+            );
     }
 
     private void writePrimitive(final Field field, final Object obj) throws IOException, IllegalAccessException {
         writeFieldName(field.getName());
-
-        if (humanReadable) { write(" "); }
-
         writePrimitive(field.get(obj));
     }
 
@@ -166,9 +163,7 @@ public class JSONWriter {
     private void dumpList(final Collection<?> list) throws IOException, IllegalAccessException {
         final var it = list.iterator();
         while (it.hasNext()) {
-            final var element = it.next();
-
-            dumpArrayElement(element);
+            dumpArrayElement(it.next());
 
             if (it.hasNext()) { writeComma(); }
         }
@@ -178,9 +173,7 @@ public class JSONWriter {
         final var length = Array.getLength(array);
 
         for (int i = 0; i < length; ++i) {
-            final var element = Array.get(array, i);
-
-            dumpArrayElement(element);
+            dumpArrayElement(Array.get(array, i));
 
             if (i + 1 < length) { writeComma(); }
         }
@@ -197,18 +190,10 @@ public class JSONWriter {
 
     private void writeObject(final Field field, final Object obj) throws IllegalAccessException, IOException {
         writeFieldName(field.getName());
-
-        if (humanReadable) { write(" "); }
-
         writeObject(field.get(obj));
     }
 
     private void writeObject(final Object obj) throws IOException, IllegalAccessException {
-        if (obj == null) {
-            write("{}");
-            return;
-        }
-
         final var c = obj.getClass();
 
         final var isCollection = Collection.class.isAssignableFrom(c);
@@ -251,6 +236,7 @@ public class JSONWriter {
         if (obj != null) {
             final var fields = getFields(obj);
             final var it     = fields.iterator();
+
             while (it.hasNext()) {
                 final var field   = it.next();
                 final var content = field.get(obj);
