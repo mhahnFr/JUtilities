@@ -123,6 +123,29 @@ public class JSONParser {
             }
         } else {
             // raw value
+            final var buffer = new StringBuilder();
+            while (stream.hasNext() && !(Character.isWhitespace(stream.peek()) || stream.peek(',') || stream.peek('}') || stream.peek(']'))) {
+                buffer.append(stream.next());
+            }
+            final var c = field.getType();
+            final var string = buffer.toString();
+            final var isTrue = string.equals("true");
+            final var isFalse = string.equals("false");
+            if (isTrue || isFalse) {
+                field.set(obj, isTrue);
+            } else if (c.equals(Byte.class) || c.equals(Byte.TYPE)) {
+                field.set(obj, Byte.decode(string));
+            } else if (c.equals(Short.class) || c.equals(Short.TYPE)) {
+                field.set(obj, Short.decode(string));
+            } else if (c.equals(Integer.class) || c.equals(Integer.TYPE)) {
+                field.set(obj, Integer.decode(string));
+            } else if (c.equals(Long.class) || c.equals(Long.TYPE)) {
+                field.set(obj, Long.decode(string));
+            } else if (c.equals(Float.class) || c.equals(Float.TYPE)) {
+                field.set(obj, Float.valueOf(string));
+            } else {
+                field.set(obj, Double.valueOf(string));
+            }
         }
     }
 
