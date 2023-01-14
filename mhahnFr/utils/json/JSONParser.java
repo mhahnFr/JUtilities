@@ -95,15 +95,6 @@ public class JSONParser {
         return false;
     }
 
-    private void readFields(Object obj) throws ReflectiveOperationException {
-        skipWhitespaces();
-        if (stream.peek('}')) return;
-
-        do {
-            readField(obj);
-        } while (peekConsume(","));
-    }
-
     private Object readRawValue(Class<?> c) {
         final var buffer = new StringBuilder();
         while (stream.hasNext() && !(Character.isWhitespace(stream.peek()) || stream.peek(',') || stream.peek('}') || stream.peek(']'))) {
@@ -155,12 +146,13 @@ public class JSONParser {
         return toReturn;
     }
 
+    @SuppressWarnings("unchecked")
     private Object readCollection(Class<?> c, Type type) throws ReflectiveOperationException {
-        final Collection collection;
+        final Collection<Object> collection;
         if (c.isInterface()) {
             collection = new ArrayList<>();
         } else {
-            collection = (Collection) c.getConstructor().newInstance();
+            collection = (Collection<Object>) c.getConstructor().newInstance();
         }
 
         skipWhitespaces();
@@ -181,12 +173,13 @@ public class JSONParser {
         return collection;
     }
 
+    @SuppressWarnings("unchecked")
     private Object readMap(Class<?> c, Type type) throws ReflectiveOperationException {
-        final Map map;
+        final Map<Object, Object> map;
         if (c.isInterface()) {
             map = new HashMap<>();
         } else {
-            map = (Map) c.getConstructor().newInstance();
+            map = (Map<Object, Object>) c.getConstructor().newInstance();
         }
 
         skipWhitespaces();
@@ -238,12 +231,16 @@ public class JSONParser {
         return toReturn;
     }
 
+    private Object readObjectKind(final Class<?> c) throws ReflectiveOperationException {
+        final var value = c.getConstructor().newInstance();
+        readInto(value);
+        return value;
+    }
+
     private Object readObject(final Class<?> c, final Type type) throws ReflectiveOperationException {
         skipWhitespaces();
         if (stream.peek('{')) {
-            final var value = c.getConstructor().newInstance();
-            readInto(value);
-            return value;
+            return readObjectKind(c);
         } else if (peekConsume("[")) {
             return readCollectionKind(c, type);
         } else if (stream.peek('"')) {
@@ -258,6 +255,15 @@ public class JSONParser {
         final var field = getField(obj, readField());
 
         field.set(obj, readObject(field.getType(), field.getGenericType()));
+    }
+
+    private void readFields(Object obj) throws ReflectiveOperationException {
+        skipWhitespaces();
+        if (stream.peek('}')) return;
+
+        do {
+            readField(obj);
+        } while (peekConsume(","));
     }
 
     public void readInto(Object obj) throws ReflectiveOperationException {
