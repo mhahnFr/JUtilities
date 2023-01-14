@@ -23,7 +23,7 @@ import mhahnFr.utils.StringStream;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
@@ -95,7 +95,7 @@ public class JSONParser {
         return false;
     }
 
-    private void readFields(Object obj) throws NoSuchFieldException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    private void readFields(Object obj) throws ReflectiveOperationException {
         skipWhitespaces();
         if (stream.peek('}')) return;
 
@@ -110,6 +110,7 @@ public class JSONParser {
             buffer.append(stream.next());
         }
         final var string = buffer.toString();
+
         final var isTrue = string.equals("true");
         final var isFalse = string.equals("false");
         if (isTrue || isFalse) {
@@ -128,7 +129,7 @@ public class JSONParser {
         return Double.valueOf(string);
     }
 
-    private Object readStringEnum(Class<?> c) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private Object readStringEnum(Class<?> c) throws ReflectiveOperationException {
         final var buffer = readString();
         if (Enum.class.isAssignableFrom(c)) {
             return c.getMethod("valueOf", String.class).invoke(null, buffer);
@@ -136,12 +137,12 @@ public class JSONParser {
         return buffer;
     }
 
-    private Object readArray(Class<?> c, java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private Object readArray(Class<?> c, Type type) throws ReflectiveOperationException {
         final var underlying = c.componentType();
+
         skipWhitespaces();
-        if (peekConsume("]")) {
-            return Array.newInstance(underlying, 0);
-        }
+        if (stream.peek(']')) { return Array.newInstance(underlying, 0); }
+
         final var list = new ArrayList<>();
         do {
             list.add(readObject(underlying, type));
@@ -154,7 +155,7 @@ public class JSONParser {
         return toReturn;
     }
 
-    private Object readCollection(Class<?> c, java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private Object readCollection(Class<?> c, Type type) throws ReflectiveOperationException {
         final Collection collection;
         if (c.isInterface()) {
             collection = new ArrayList<>();
@@ -162,13 +163,11 @@ public class JSONParser {
             collection = (Collection) c.getConstructor().newInstance();
         }
 
-        stream.skip();
         skipWhitespaces();
+        if (stream.peek(']')) { return collection; }
 
-        if (stream.peek(']')) {
-            return collection;
-        }
         final var actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
+
         final Class<?> underlying;
         if (actualType instanceof ParameterizedType) {
             underlying = (Class<?>) ((ParameterizedType) actualType).getRawType();
@@ -182,7 +181,7 @@ public class JSONParser {
         return collection;
     }
 
-    private Object readMap(Class<?> c, java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private Object readMap(Class<?> c, Type type) throws ReflectiveOperationException {
         final Map map;
         if (c.isInterface()) {
             map = new HashMap<>();
@@ -190,21 +189,22 @@ public class JSONParser {
             map = (Map) c.getConstructor().newInstance();
         }
 
-        stream.skip();
         skipWhitespaces();
+        if (stream.peek(']')) { return map; }
 
-        if (stream.peek() == ']') {
-            return map;
-        }
-        final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];
-        final var valueType = ((ParameterizedType) type).getActualTypeArguments()[1];
+        final var actualTypes = ((ParameterizedType) type).getActualTypeArguments();
+
+        final var keyType     = actualTypes[0];
+        final var valueType   = actualTypes[1];
+
         final Class<?> keyClass;
-        final Class<?> valueClass;
         if (keyType instanceof ParameterizedType) {
             keyClass = (Class<?>) ((ParameterizedType) keyType).getRawType();
         } else {
             keyClass = (Class<?>) keyType;
         }
+
+        final Class<?> valueClass;
         if (valueType instanceof ParameterizedType) {
             valueClass = (Class<?>) ((ParameterizedType) valueType).getRawType();
         } else {
@@ -221,7 +221,7 @@ public class JSONParser {
         return map;
     }
 
-    private Object readCollectionKind(Class<?> c, java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private Object readCollectionKind(Class<?> c, Type type) throws ReflectiveOperationException {
         final Object toReturn;
         if (c.isArray()) {
             toReturn = readArray(c, type);
@@ -238,7 +238,7 @@ public class JSONParser {
         return toReturn;
     }
 
-    private Object readObject(final Class<?> c, final java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private Object readObject(final Class<?> c, final Type type) throws ReflectiveOperationException {
         skipWhitespaces();
         if (stream.peek('{')) {
             final var value = c.getConstructor().newInstance();
@@ -252,7 +252,7 @@ public class JSONParser {
         return readRawValue(c);
     }
 
-    private void readField(Object obj) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private void readField(Object obj) throws ReflectiveOperationException {
         skipWhitespaces();
 
         final var field = getField(obj, readField());
@@ -260,7 +260,7 @@ public class JSONParser {
         field.set(obj, readObject(field.getType(), field.getGenericType()));
     }
 
-    public void readInto(Object obj) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public void readInto(Object obj) throws ReflectiveOperationException {
         skipWhitespaces();
         expect("{");
         readFields(obj);
