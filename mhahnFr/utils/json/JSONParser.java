@@ -25,10 +25,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class parses JSON data.
@@ -148,9 +145,15 @@ public class JSONParser {
                 if (stream.peek(']')) {
                     return collection;
                 }
-                final var underlying = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
+                final var actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
+                final Class<?> underlying;
+                if (actualType instanceof ParameterizedType) {
+                    underlying = (Class<?>) ((ParameterizedType) actualType).getRawType();
+                } else {
+                    underlying = (Class<?>) actualType;
+                }
                 do {
-                    collection.add(readObject(underlying, type));
+                    collection.add(readObject(underlying, actualType));
                     skipWhitespaces();
                 } while (peekConsume(","));
                 skipWhitespaces();
@@ -170,13 +173,25 @@ public class JSONParser {
                 if (stream.peek() == ']') {
                     return map;
                 }
-                final var keyType = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
-                final var valueType = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[1];
+                final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];
+                final var valueType = ((ParameterizedType) type).getActualTypeArguments()[1];
+                final Class<?> keyClass;
+                final Class<?> valueClass;
+                if (keyType instanceof ParameterizedType) {
+                    keyClass = (Class<?>) ((ParameterizedType) keyType).getRawType();
+                } else {
+                    keyClass = (Class<?>) keyType;
+                }
+                if (valueType instanceof ParameterizedType) {
+                    valueClass = (Class<?>) ((ParameterizedType) valueType).getRawType();
+                } else {
+                    valueClass = (Class<?>) valueType;
+                }
                 do {
-                    final var key = readObject(keyType, type);
+                    final var key = readObject(keyClass, keyType);
                     skipWhitespaces();
                     expect(",");
-                    final var value = readObject(valueType, type);
+                    final var value = readObject(valueClass, valueType);
                     map.put(key, value);
                     skipWhitespaces();
                 } while (peekConsume(","));
@@ -185,6 +200,7 @@ public class JSONParser {
                 return map;
             } else {
                 // Problem!
+                throw new RuntimeException("Unknown collection type!");
             }
         } else if (stream.peek('"')) {
             // string or enum
@@ -219,7 +235,6 @@ public class JSONParser {
                 return Double.valueOf(string);
             }
         }
-        return null;
     }
 
     private void readField(Object obj) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
