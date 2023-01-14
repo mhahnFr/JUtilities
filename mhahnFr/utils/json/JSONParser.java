@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -145,18 +146,43 @@ public class JSONParser {
                 skipWhitespaces();
 
                 if (stream.peek(']')) {
-
-                } else {
-                    final var underlying = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
-                    do {
-                        collection.add(readObject(underlying, type));
-                    } while (peekConsume(","));
-                    skipWhitespaces();
-                    expect("]");
+                    return collection;
                 }
+                final var underlying = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
+                do {
+                    collection.add(readObject(underlying, type));
+                    skipWhitespaces();
+                } while (peekConsume(","));
+                skipWhitespaces();
+                expect("]");
                 return collection;
             } else if (Map.class.isAssignableFrom(c)) {
+                final Map map;
+                if (c.isInterface()) {
+                    map = new HashMap<>();
+                } else {
+                    map = (Map) c.getConstructor().newInstance();
+                }
 
+                stream.skip();
+                skipWhitespaces();
+
+                if (stream.peek() == ']') {
+                    return map;
+                }
+                final var keyType = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
+                final var valueType = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[1];
+                do {
+                    final var key = readObject(keyType, type);
+                    skipWhitespaces();
+                    expect(",");
+                    final var value = readObject(valueType, type);
+                    map.put(key, value);
+                    skipWhitespaces();
+                } while (peekConsume(","));
+                skipWhitespaces();
+                expect("]");
+                return map;
             } else {
                 // Problem!
             }
