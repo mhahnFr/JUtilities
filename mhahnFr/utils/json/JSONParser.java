@@ -104,137 +104,152 @@ public class JSONParser {
         } while (peekConsume(","));
     }
 
+    private Object readRawValue(Class<?> c) {
+        final var buffer = new StringBuilder();
+        while (stream.hasNext() && !(Character.isWhitespace(stream.peek()) || stream.peek(',') || stream.peek('}') || stream.peek(']'))) {
+            buffer.append(stream.next());
+        }
+        final var string = buffer.toString();
+        final var isTrue = string.equals("true");
+        final var isFalse = string.equals("false");
+        if (isTrue || isFalse) {
+            return isTrue;
+        } else if (c.equals(Byte.class) || c.equals(Byte.TYPE)) {
+            return Byte.decode(string);
+        } else if (c.equals(Short.class) || c.equals(Short.TYPE)) {
+            return Short.decode(string);
+        } else if (c.equals(Integer.class) || c.equals(Integer.TYPE)) {
+            return Integer.decode(string);
+        } else if (c.equals(Long.class) || c.equals(Long.TYPE)) {
+            return Long.decode(string);
+        } else if (c.equals(Float.class) || c.equals(Float.TYPE)) {
+            return Float.valueOf(string);
+        }
+        return Double.valueOf(string);
+    }
+
+    private Object readStringEnum(Class<?> c) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        final var buffer = readString();
+        if (Enum.class.isAssignableFrom(c)) {
+            return c.getMethod("valueOf", String.class).invoke(null, buffer);
+        }
+        return buffer;
+    }
+
+    private Object readArray(Class<?> c, java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        final var underlying = c.componentType();
+        skipWhitespaces();
+        if (peekConsume("]")) {
+            return Array.newInstance(underlying, 0);
+        }
+        final var list = new ArrayList<>();
+        do {
+            list.add(readObject(underlying, type));
+        } while (peekConsume(","));
+
+        final var toReturn = Array.newInstance(underlying, list.size());
+        for (int i = 0; i < list.size(); ++i) {
+            Array.set(toReturn, i, list.get(i));
+        }
+        return toReturn;
+    }
+
+    private Object readCollection(Class<?> c, java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        final Collection collection;
+        if (c.isInterface()) {
+            collection = new ArrayList<>();
+        } else {
+            collection = (Collection) c.getConstructor().newInstance();
+        }
+
+        stream.skip();
+        skipWhitespaces();
+
+        if (stream.peek(']')) {
+            return collection;
+        }
+        final var actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
+        final Class<?> underlying;
+        if (actualType instanceof ParameterizedType) {
+            underlying = (Class<?>) ((ParameterizedType) actualType).getRawType();
+        } else {
+            underlying = (Class<?>) actualType;
+        }
+        do {
+            collection.add(readObject(underlying, actualType));
+            skipWhitespaces();
+        } while (peekConsume(","));
+        return collection;
+    }
+
+    private Object readMap(Class<?> c, java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        final Map map;
+        if (c.isInterface()) {
+            map = new HashMap<>();
+        } else {
+            map = (Map) c.getConstructor().newInstance();
+        }
+
+        stream.skip();
+        skipWhitespaces();
+
+        if (stream.peek() == ']') {
+            return map;
+        }
+        final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];
+        final var valueType = ((ParameterizedType) type).getActualTypeArguments()[1];
+        final Class<?> keyClass;
+        final Class<?> valueClass;
+        if (keyType instanceof ParameterizedType) {
+            keyClass = (Class<?>) ((ParameterizedType) keyType).getRawType();
+        } else {
+            keyClass = (Class<?>) keyType;
+        }
+        if (valueType instanceof ParameterizedType) {
+            valueClass = (Class<?>) ((ParameterizedType) valueType).getRawType();
+        } else {
+            valueClass = (Class<?>) valueType;
+        }
+        do {
+            final var key = readObject(keyClass, keyType);
+            skipWhitespaces();
+            expect(",");
+            final var value = readObject(valueClass, valueType);
+            map.put(key, value);
+            skipWhitespaces();
+        } while (peekConsume(","));
+        return map;
+    }
+
+    private Object readCollectionKind(Class<?> c, java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        final Object toReturn;
+        if (c.isArray()) {
+            toReturn = readArray(c, type);
+        } else if (Collection.class.isAssignableFrom(c)) {
+            toReturn = readCollection(c, type);
+        } else if (Map.class.isAssignableFrom(c)) {
+            toReturn = readMap(c, type);
+        } else {
+            // else problem!
+            throw new RuntimeException("Unknown collection type!");
+        }
+        skipWhitespaces();
+        expect("]");
+        return toReturn;
+    }
+
     private Object readObject(final Class<?> c, final java.lang.reflect.Type type) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         skipWhitespaces();
         if (stream.peek('{')) {
-            // object
             final var value = c.getConstructor().newInstance();
             readInto(value);
             return value;
         } else if (peekConsume("[")) {
-            // collection
-            if (c.isArray()) {
-                final var underlying = c.componentType();
-                skipWhitespaces();
-                if (peekConsume("]")) {
-                    return Array.newInstance(underlying, 0);
-                }
-                final var list = new ArrayList<>();
-                do {
-                    list.add(readObject(underlying, type));
-                } while (peekConsume(","));
-                skipWhitespaces();
-                expect("]");
-
-                final var toReturn = Array.newInstance(underlying, list.size());
-                for (int i = 0; i < list.size(); ++i) {
-                    Array.set(toReturn, i, list.get(i));
-                }
-                return toReturn;
-            } else if (Collection.class.isAssignableFrom(c)) {
-                final Collection collection;
-                if (c.isInterface()) {
-                    collection = new ArrayList<>();
-                } else {
-                    collection = (Collection) c.getConstructor().newInstance();
-                }
-
-                stream.skip();
-                skipWhitespaces();
-
-                if (stream.peek(']')) {
-                    return collection;
-                }
-                final var actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
-                final Class<?> underlying;
-                if (actualType instanceof ParameterizedType) {
-                    underlying = (Class<?>) ((ParameterizedType) actualType).getRawType();
-                } else {
-                    underlying = (Class<?>) actualType;
-                }
-                do {
-                    collection.add(readObject(underlying, actualType));
-                    skipWhitespaces();
-                } while (peekConsume(","));
-                skipWhitespaces();
-                expect("]");
-                return collection;
-            } else if (Map.class.isAssignableFrom(c)) {
-                final Map map;
-                if (c.isInterface()) {
-                    map = new HashMap<>();
-                } else {
-                    map = (Map) c.getConstructor().newInstance();
-                }
-
-                stream.skip();
-                skipWhitespaces();
-
-                if (stream.peek() == ']') {
-                    return map;
-                }
-                final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];
-                final var valueType = ((ParameterizedType) type).getActualTypeArguments()[1];
-                final Class<?> keyClass;
-                final Class<?> valueClass;
-                if (keyType instanceof ParameterizedType) {
-                    keyClass = (Class<?>) ((ParameterizedType) keyType).getRawType();
-                } else {
-                    keyClass = (Class<?>) keyType;
-                }
-                if (valueType instanceof ParameterizedType) {
-                    valueClass = (Class<?>) ((ParameterizedType) valueType).getRawType();
-                } else {
-                    valueClass = (Class<?>) valueType;
-                }
-                do {
-                    final var key = readObject(keyClass, keyType);
-                    skipWhitespaces();
-                    expect(",");
-                    final var value = readObject(valueClass, valueType);
-                    map.put(key, value);
-                    skipWhitespaces();
-                } while (peekConsume(","));
-                skipWhitespaces();
-                expect("]");
-                return map;
-            } else {
-                // Problem!
-                throw new RuntimeException("Unknown collection type!");
-            }
+            return readCollectionKind(c, type);
         } else if (stream.peek('"')) {
-            // string or enum
-            final var buffer = readString();
-            if (Enum.class.isAssignableFrom(c)) {
-                return c.getMethod("valueOf", String.class).invoke(null, buffer);
-            } else {
-                return buffer;
-            }
-        } else {
-            // raw value
-            final var buffer = new StringBuilder();
-            while (stream.hasNext() && !(Character.isWhitespace(stream.peek()) || stream.peek(',') || stream.peek('}') || stream.peek(']'))) {
-                buffer.append(stream.next());
-            }
-            final var string = buffer.toString();
-            final var isTrue = string.equals("true");
-            final var isFalse = string.equals("false");
-            if (isTrue || isFalse) {
-                return isTrue;
-            } else if (c.equals(Byte.class) || c.equals(Byte.TYPE)) {
-                return Byte.decode(string);
-            } else if (c.equals(Short.class) || c.equals(Short.TYPE)) {
-                return Short.decode(string);
-            } else if (c.equals(Integer.class) || c.equals(Integer.TYPE)) {
-                return Integer.decode(string);
-            } else if (c.equals(Long.class) || c.equals(Long.TYPE)) {
-                return Long.decode(string);
-            } else if (c.equals(Float.class) || c.equals(Float.TYPE)) {
-                return Float.valueOf(string);
-            } else {
-                return Double.valueOf(string);
-            }
+            return readStringEnum(c);
         }
+        return readRawValue(c);
     }
 
     private void readField(Object obj) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
