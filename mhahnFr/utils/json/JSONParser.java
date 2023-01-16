@@ -256,6 +256,7 @@ public class JSONParser {
      *
      * @param c the class of the map
      * @param type the generic type of the map
+     * @param isStringDict whether the map is a string dictionary
      * @return a map consisting of the objects read from the stream
      * @throws ReflectiveOperationException if an object cannot be filled with the values
      */
@@ -294,6 +295,7 @@ public class JSONParser {
      *
      * @param c the class of the collection
      * @param type the generic type of the collection
+     * @param isStringDict whether the collection is a string dictionary
      * @return a collection consisting of the read objects
      * @throws ReflectiveOperationException if an object could not be filled with the values
      * @see #readArray(Class, Type)
@@ -331,6 +333,12 @@ public class JSONParser {
         return value;
     }
 
+    /**
+     * Returns the {@link Class} represented by the given type.
+     *
+     * @param type the type whose underlying class to get
+     * @return the underlying class
+     */
     public static Class<?> getMaybeGenericClass(final Type type) {
         final Class<?> c;
 
@@ -342,6 +350,14 @@ public class JSONParser {
         return c;
     }
 
+    /**
+     * Returns whether the given {@link Class} represents a {@link String}
+     * dictionary.
+     *
+     * @param c the class to be checked
+     * @param type the generic type of the class's instance
+     * @return whether the given class and type represent a string dictionary
+     */
     private boolean isStringDictionary(final Class<?> c, final Type type) {
         if (Map.class.isAssignableFrom(c)) {
             final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];

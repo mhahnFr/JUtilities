@@ -258,13 +258,7 @@ public class JSONWriter {
     private void dumpDictionary(final Map<?, ?> dict, final Type type) throws IOException, IllegalAccessException {
         final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];
 
-        final Class<?> keyClass;
-        if (keyType instanceof ParameterizedType) {
-            keyClass = (Class<?>) ((ParameterizedType) keyType).getRawType();
-        } else {
-            keyClass = (Class<?>) keyType;
-        }
-        final var isStringDict = String.class.isAssignableFrom(keyClass);
+        final var isStringDict = String.class.isAssignableFrom(JSONParser.getMaybeGenericClass(keyType));
 
         writeBeginBracket(isStringDict ? '{' : '[');
 
