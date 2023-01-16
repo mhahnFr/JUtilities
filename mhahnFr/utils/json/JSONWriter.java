@@ -21,9 +21,7 @@ package mhahnFr.utils.json;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -133,6 +131,23 @@ public class JSONWriter {
         if (humanReadable) { write("\n"); }
     }
 
+    private void writeBeginBracket(final char bracket) throws IOException {
+        write(Character.toString(bracket));
+
+        if (humanReadable) {
+            write("\n");
+            indent += 4;
+        }
+    }
+
+    private void writeEndBracket(final char bracket) throws IOException {
+        if (humanReadable) {
+            write("\n");
+            indent -= 4;
+        }
+        writeIndent(Character.toString(bracket));
+    }
+
     /**
      * Writes the given string indented.
      *
@@ -210,20 +225,40 @@ public class JSONWriter {
      * @param dict the dictionary to be dumped
      * @throws IOException if an I/O error occurs
      * @throws IllegalAccessException if a field of a dumped object cannot be accessed
-     * @see #dumpArrayElement(Object)
+     * @see #dumpArrayElement(Object, Type, boolean)
      * @see #writeComma()
      */
-    private void dumpDictionary(final Map<?, ?> dict) throws IOException, IllegalAccessException {
+    private void dumpDictionary(final Map<?, ?> dict, final Type type) throws IOException, IllegalAccessException {
+        final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];
+
+        final Class<?> keyClass;
+        if (keyType instanceof ParameterizedType) {
+            keyClass = (Class<?>) ((ParameterizedType) keyType).getRawType();
+        } else {
+            keyClass = (Class<?>) keyType;
+        }
+        final var isStringDict = String.class.isAssignableFrom(keyClass);
+
+        writeBeginBracket(isStringDict ? '{' : '[');
+
         final var it = dict.entrySet().iterator();
         while (it.hasNext()) {
             final var entry = it.next();
 
-            dumpArrayElement(entry.getKey());
-            writeComma();
-            dumpArrayElement(entry.getValue());
+            dumpArrayElement(entry.getKey(), type, true);
+            if (isStringDict) {
+                write(":");
+
+                if (humanReadable) { write(" "); }
+            } else {
+                writeComma();
+            }
+            dumpArrayElement(entry.getValue(), type, !isStringDict);
 
             if (it.hasNext()) { writeComma(); }
         }
+
+        writeEndBracket(isStringDict ? '}' : ']');
     }
 
     /**
@@ -232,16 +267,20 @@ public class JSONWriter {
      * @param list the list to be dumped
      * @throws IOException if an I/O error occurs
      * @throws IllegalAccessException if a field of a dumped object cannot be accessed
-     * @see #dumpArrayElement(Object)
+     * @see #dumpArrayElement(Object, Type, boolean)
      * @see #writeComma()
      */
-    private void dumpList(final Collection<?> list) throws IOException, IllegalAccessException {
+    private void dumpList(final Collection<?> list, final Type type) throws IOException, IllegalAccessException {
+        writeBeginBracket('[');
+
         final var it = list.iterator();
         while (it.hasNext()) {
-            dumpArrayElement(it.next());
+            dumpArrayElement(it.next(), type, true);
 
             if (it.hasNext()) { writeComma(); }
         }
+
+        writeEndBracket(']');
     }
 
     /**
@@ -250,17 +289,21 @@ public class JSONWriter {
      * @param array the array to be dumped
      * @throws IOException if an I/O error occurs
      * @throws IllegalAccessException if a field of a dumped object cannot be accessed
-     * @see #dumpArrayElement(Object)
+     * @see #dumpArrayElement(Object, Type, boolean)
      * @see #writeComma()
      */
-    private void dumpArray(final Object array) throws IOException, IllegalAccessException {
+    private void dumpArray(final Object array, final Type type) throws IOException, IllegalAccessException {
+        writeBeginBracket('[');
+
         final var length = Array.getLength(array);
 
         for (int i = 0; i < length; ++i) {
-            dumpArrayElement(Array.get(array, i));
+            dumpArrayElement(Array.get(array, i), type, true);
 
             if (i + 1 < length) { writeComma(); }
         }
+
+        writeEndBracket(']');
     }
 
     /**
@@ -273,15 +316,16 @@ public class JSONWriter {
      * @throws IllegalAccessException if a field of a dumped object cannot be accessed
      * @see #canDumpDirect(Object)
      * @see #writePrimitive(Object)
-     * @see #writeObject(Object)
+     * @see #writeObject(Object, Type)
      * @see #writeIndent(String)
      */
-    private void dumpArrayElement(final Object obj) throws IOException, IllegalAccessException {
-        writeIndent("");
+    private void dumpArrayElement(final Object obj, final Type type, final boolean indent) throws IOException, IllegalAccessException {
+        if (indent) { writeIndent(""); }
+
         if (canDumpDirect(obj)) {
             writePrimitive(obj);
         } else {
-            writeObject(obj);
+            writeObject(obj, type);
         }
     }
 
@@ -298,14 +342,14 @@ public class JSONWriter {
      * @see #writeIndent(String)
      * @see #indent
      * @see #dump(Object)
-     * @see #dumpArray(Object)
-     * @see #dumpDictionary(Map)
-     * @see #dumpList(Collection)
+     * @see #dumpArray(Object, Type)
+     * @see #dumpDictionary(Map, Type)
+     * @see #dumpList(Collection, Type)
      * @see #humanReadable
      * @see #isHumanReadable()
      * @see #setHumanReadable(boolean)
      */
-    private void writeObject(final Object obj) throws IOException, IllegalAccessException {
+    private void writeObject(final Object obj, final Type type) throws IOException, IllegalAccessException {
         final var c = obj.getClass();
 
         final var isCollection = Collection.class.isAssignableFrom(c);
@@ -313,29 +357,15 @@ public class JSONWriter {
         final var isArray      = c.isArray();
 
         if (isCollection || isDictionary || isArray) {
-            write("[");
-
-            if (humanReadable) {
-                write("\n");
-                indent += 4;
-            }
-
             if (isDictionary) {
-                dumpDictionary((Map<?, ?>) obj);
+                dumpDictionary((Map<?, ?>) obj, type);
             } else if (isCollection) {
-                dumpList((Collection<?>) obj);
+                dumpList((Collection<?>) obj, type);
             } else {
-                dumpArray(obj);
+                dumpArray(obj, type);
             }
         } else {
             dump(obj);
-        }
-        if (isCollection || isDictionary || isArray) {
-            if (humanReadable) {
-                write("\n");
-                indent -= 4;
-            }
-            writeIndent("]");
         }
     }
 
@@ -369,7 +399,7 @@ public class JSONWriter {
                     if (canDumpDirect(content)) {
                         writePrimitive(content);
                     } else {
-                        writeObject(content);
+                        writeObject(content, field.getGenericType());
                     }
                     if (it.hasNext()) { needsComma = true; }
                 }
