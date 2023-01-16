@@ -131,6 +131,12 @@ public class JSONWriter {
         if (humanReadable) { write("\n"); }
     }
 
+    /**
+     * Writes the beginning bracket.
+     *
+     * @param bracket the actual bracket to be printed
+     * @throws IOException if an I/O error occurs
+     */
     private void writeBeginBracket(final char bracket) throws IOException {
         write(Character.toString(bracket));
 
@@ -140,6 +146,12 @@ public class JSONWriter {
         }
     }
 
+    /**
+     * Writes the end bracket.
+     *
+     * @param bracket the actual bracket to be printed
+     * @throws IOException if an I/O error occurs
+     */
     private void writeEndBracket(final char bracket) throws IOException {
         if (humanReadable) {
             write("\n");
@@ -223,6 +235,7 @@ public class JSONWriter {
      * Dumps the given dictionary.
      *
      * @param dict the dictionary to be dumped
+     * @param type the generic type
      * @throws IOException if an I/O error occurs
      * @throws IllegalAccessException if a field of a dumped object cannot be accessed
      * @see #dumpArrayElement(Object, Type, boolean)
@@ -265,6 +278,7 @@ public class JSONWriter {
      * Dumps the given list.
      *
      * @param list the list to be dumped
+     * @param type the generic type
      * @throws IOException if an I/O error occurs
      * @throws IllegalAccessException if a field of a dumped object cannot be accessed
      * @see #dumpArrayElement(Object, Type, boolean)
@@ -287,6 +301,7 @@ public class JSONWriter {
      * Dumps the given array.
      *
      * @param array the array to be dumped
+     * @param type the generic type
      * @throws IOException if an I/O error occurs
      * @throws IllegalAccessException if a field of a dumped object cannot be accessed
      * @see #dumpArrayElement(Object, Type, boolean)
@@ -312,6 +327,8 @@ public class JSONWriter {
      * it is written as an object.
      *
      * @param obj the object to be written
+     * @param type the generic type
+     * @param indent whether to indent the element
      * @throws IOException if an I/O error occurs
      * @throws IllegalAccessException if a field of a dumped object cannot be accessed
      * @see #canDumpDirect(Object)
@@ -336,6 +353,7 @@ public class JSONWriter {
      * The output is formatted human-readable if set.
      *
      * @param obj the object to be written
+     * @param type the generic type
      * @throws IOException if an I/O error occurs
      * @throws IllegalAccessException if a field of a dumped object cannot be accessed
      * @see #write(String)
