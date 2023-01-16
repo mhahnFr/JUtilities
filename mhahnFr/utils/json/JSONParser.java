@@ -360,9 +360,10 @@ public class JSONParser {
      */
     private boolean isStringDictionary(final Class<?> c, final Type type) {
         if (Map.class.isAssignableFrom(c)) {
-            final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];
+            final var keyClass = getMaybeGenericClass(((ParameterizedType) type).getActualTypeArguments()[0]);
 
-            return String.class.isAssignableFrom(getMaybeGenericClass(keyType));
+            return String.class.isAssignableFrom(keyClass) ||
+                   Enum.class.isAssignableFrom(keyClass);
         }
         return false;
     }

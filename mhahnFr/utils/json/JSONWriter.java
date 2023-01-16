@@ -256,9 +256,9 @@ public class JSONWriter {
      * @see #writeComma()
      */
     private void dumpDictionary(final Map<?, ?> dict, final Type type) throws IOException, IllegalAccessException {
-        final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];
-
-        final var isStringDict = String.class.isAssignableFrom(JSONParser.getMaybeGenericClass(keyType));
+        final var keyClass = JSONParser.getMaybeGenericClass(((ParameterizedType) type).getActualTypeArguments()[0]);
+        final var isStringDict = String.class.isAssignableFrom(keyClass) ||
+                                 Enum.class.isAssignableFrom(keyClass);
 
         writeBeginBracket(isStringDict ? '{' : '[');
 
