@@ -243,12 +243,7 @@ public class JSONParser {
 
         final var actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
 
-        final Class<?> underlying;
-        if (actualType instanceof ParameterizedType) {
-            underlying = (Class<?>) ((ParameterizedType) actualType).getRawType();
-        } else {
-            underlying = (Class<?>) actualType;
-        }
+        final Class<?> underlying = getMaybeGenericClass(actualType);
         do {
             collection.add(readObject(underlying, actualType));
             skipWhitespaces();
@@ -265,7 +260,7 @@ public class JSONParser {
      * @throws ReflectiveOperationException if an object cannot be filled with the values
      */
     @SuppressWarnings("unchecked")
-    private Object readMap(Class<?> c, Type type) throws ReflectiveOperationException {
+    private Object readMap(Class<?> c, Type type, final boolean isStringDict) throws ReflectiveOperationException {
         final Map<Object, Object> map;
         if (c.isInterface()) {
             map = new HashMap<>();
@@ -274,30 +269,19 @@ public class JSONParser {
         }
 
         skipWhitespaces();
-        if (stream.peek(']')) { return map; }
+        if (stream.peek(isStringDict ? '}' : ']')) { return map; }
 
         final var actualTypes = ((ParameterizedType) type).getActualTypeArguments();
 
         final var keyType     = actualTypes[0];
         final var valueType   = actualTypes[1];
 
-        final Class<?> keyClass;
-        if (keyType instanceof ParameterizedType) {
-            keyClass = (Class<?>) ((ParameterizedType) keyType).getRawType();
-        } else {
-            keyClass = (Class<?>) keyType;
-        }
-
-        final Class<?> valueClass;
-        if (valueType instanceof ParameterizedType) {
-            valueClass = (Class<?>) ((ParameterizedType) valueType).getRawType();
-        } else {
-            valueClass = (Class<?>) valueType;
-        }
+        final Class<?> keyClass   = getMaybeGenericClass(keyType),
+                       valueClass = getMaybeGenericClass(valueType);
         do {
             final var key = readObject(keyClass, keyType);
             skipWhitespaces();
-            expect(",");
+            expect(isStringDict ? ":" : ",");
             final var value = readObject(valueClass, valueType);
             map.put(key, value);
             skipWhitespaces();
@@ -314,22 +298,23 @@ public class JSONParser {
      * @throws ReflectiveOperationException if an object could not be filled with the values
      * @see #readArray(Class, Type)
      * @see #readCollection(Class, Type)
-     * @see #readMap(Class, Type)
+     * @see #readMap(Class, Type, boolean)
      */
-    private Object readCollectionKind(Class<?> c, Type type) throws ReflectiveOperationException {
+    private Object readCollectionKind(Class<?> c, Type type, final boolean isStringDict) throws ReflectiveOperationException {
         final Object toReturn;
-        if (c.isArray()) {
+
+        if (isStringDict || Map.class.isAssignableFrom(c)) {
+            toReturn = readMap(c, type, isStringDict);
+        } else if (c.isArray()) {
             toReturn = readArray(c, type);
         } else if (Collection.class.isAssignableFrom(c)) {
             toReturn = readCollection(c, type);
-        } else if (Map.class.isAssignableFrom(c)) {
-            toReturn = readMap(c, type);
         } else {
             // Problem!
             throw new RuntimeException("Unknown collection type!");
         }
         skipWhitespaces();
-        expect("]");
+        expect(isStringDict ? "}" : "]");
         return toReturn;
     }
 
@@ -346,6 +331,26 @@ public class JSONParser {
         return value;
     }
 
+    public static Class<?> getMaybeGenericClass(final Type type) {
+        final Class<?> c;
+
+        if (type instanceof ParameterizedType) {
+            c = (Class<?>) ((ParameterizedType) type).getRawType();
+        } else {
+            c = (Class<?>) type;
+        }
+        return c;
+    }
+
+    private boolean isStringDictionary(final Class<?> c, final Type type) {
+        if (Map.class.isAssignableFrom(c)) {
+            final var keyType = ((ParameterizedType) type).getActualTypeArguments()[0];
+
+            return String.class.isAssignableFrom(getMaybeGenericClass(keyType));
+        }
+        return false;
+    }
+
     /**
      * Reads an object from the stream. Depending on the following characters,
      * either a raw value, a collection or a normal object is read and returned.
@@ -355,16 +360,19 @@ public class JSONParser {
      * @return the read object
      * @throws ReflectiveOperationException if the object could not be filled with the read values
      * @see #readObjectKind(Class)
-     * @see #readCollectionKind(Class, Type)
+     * @see #readCollectionKind(Class, Type, boolean)
      * @see #readStringEnum(Class)
      * @see #readRawValue(Class)
      */
     private Object readObject(final Class<?> c, final Type type) throws ReflectiveOperationException {
         skipWhitespaces();
-        if (stream.peek('{')) {
+
+        final var isStringDict = isStringDictionary(c, type);
+
+        if (stream.peek('{') && !isStringDict) {
             return readObjectKind(c);
-        } else if (peekConsume("[")) {
-            return readCollectionKind(c, type);
+        } else if (peekConsume(isStringDict ? "{" : "[")) {
+            return readCollectionKind(c, type, isStringDict);
         } else if (stream.peek('"')) {
             return readStringEnum(c);
         }
