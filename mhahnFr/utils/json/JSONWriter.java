@@ -132,10 +132,23 @@ public class JSONWriter {
     }
 
     /**
+     * Writes a colon. If the output should be human-readable,
+     * a space is written after the comma.
+     *
+     * @throws IOException if an I/O error occurs
+     */
+    private void writeColon() throws IOException {
+        write(":");
+
+        if (humanReadable) { write(" "); }
+    }
+
+    /**
      * Writes the beginning bracket.
      *
      * @param bracket the actual bracket to be printed
      * @throws IOException if an I/O error occurs
+     * @see #write(String)
      */
     private void writeBeginBracket(final char bracket) throws IOException {
         write(Character.toString(bracket));
@@ -151,6 +164,8 @@ public class JSONWriter {
      *
      * @param bracket the actual bracket to be printed
      * @throws IOException if an I/O error occurs
+     * @see #write(String)
+     * @see #writeIndent(String)
      */
     private void writeEndBracket(final char bracket) throws IOException {
         if (humanReadable) {
@@ -184,9 +199,8 @@ public class JSONWriter {
      * @see #setHumanReadable(boolean)
      */
     private void writeFieldName(final String name) throws IOException {
-        writeIndent("\"" + name + "\":");
-
-        if (humanReadable) { write(" "); }
+        writeIndent("\"" + name + "\"");
+        writeColon();
     }
 
     /**
@@ -260,9 +274,7 @@ public class JSONWriter {
 
             dumpArrayElement(entry.getKey(), type, true);
             if (isStringDict) {
-                write(":");
-
-                if (humanReadable) { write(" "); }
+                writeColon();
             } else {
                 writeComma();
             }
@@ -396,11 +408,7 @@ public class JSONWriter {
      * @throws IOException if an I/O error occurs
      */
     public void dump(Object obj) throws IllegalAccessException, IOException {
-        write("{");
-        if (humanReadable) {
-            write("\n");
-            indent += 4;
-        }
+        writeBeginBracket('{');
         if (obj != null) {
             final var fields = getFields(obj);
             final var it     = fields.iterator();
