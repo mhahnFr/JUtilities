@@ -36,7 +36,11 @@ public record StreamPosition(int position, String context) {
      * @return a descriptive error message
      */
     public String makeErrorText(final String message) {
-        return "bla bla bla\n" +
-                "    ^ " + message;
+        int lineBegin, lineEnd;
+
+        for (lineBegin = position; lineBegin >= 0                && context.charAt(lineBegin) != '\n'; --lineBegin);
+        for (lineEnd   = position; lineEnd   <= context.length() && context.charAt(lineEnd)   != '\n'; ++lineEnd);
+
+        return context.substring(lineBegin, lineEnd) + "\n" + " ".repeat(Math.max(0, position - lineBegin)) + "^ " + message + "\n";
     }
 }
