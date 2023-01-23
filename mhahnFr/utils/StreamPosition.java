@@ -41,6 +41,15 @@ public record StreamPosition(int position, String context) {
         for (lineBegin = position; lineBegin >= 0                && context.charAt(lineBegin) != '\n'; --lineBegin);
         for (lineEnd   = position; lineEnd   <= context.length() && context.charAt(lineEnd)   != '\n'; ++lineEnd);
 
-        return context.substring(lineBegin, lineEnd) + "\n" + " ".repeat(Math.max(0, position - lineBegin)) + "^ " + message + "\n";
+        int lines = 1;
+        for (int i = 0; i < lineBegin + 1; ++i) {
+            if (context.charAt(i) == '\n') {
+                ++lines;
+            }
+        }
+
+        final var lineInfo = "\n" + lines + ": ";
+
+        return lineInfo + context.substring(lineBegin + 1, lineEnd) + "\n" + " ".repeat(lineInfo.length() + Math.max(0, position - lineBegin)) + "^ " + message + "\n";
     }
 }
