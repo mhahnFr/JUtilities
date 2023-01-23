@@ -61,6 +61,7 @@ public class JSONParser {
      * is thrown.
      *
      * @param string the string expected to follow
+     * @throws JSONParseException if the JSON data could not be parsed
      */
     private void expect(final String string) throws JSONParseException {
         expectKeep(string);
@@ -72,6 +73,7 @@ public class JSONParser {
      * If this is not the case, an exception is thrown.
      *
      * @param string the string expected to follow
+     *              @throws JSONParseException if the JSON data could not be parsed
      */
     private void expectKeep(final String string) throws JSONParseException {
         if (!stream.peek(string)) {
@@ -83,6 +85,7 @@ public class JSONParser {
      * Reads a string. It is expected to be in the format: {@code "< content >"}.
      *
      * @return the read string, without quotation
+     * @throws JSONParseException if the JSON data could not be parsed
      * @see #expect(String)
      */
     private String readString() throws JSONParseException {
@@ -100,6 +103,7 @@ public class JSONParser {
      * Reads a field. It is expected to be a string followed by a colon.
      *
      * @return the name of the read field
+     * @throws JSONParseException if the JSON data could not be parsed
      * @see #expect(String)
      * @see #readString()
      */
@@ -186,6 +190,7 @@ public class JSONParser {
      * @param c the class of the object to be read
      * @return a string or an enum representation depending on the given class
      * @throws ReflectiveOperationException if the class is an enum and its {@code valueOf} method cannot be invoked
+     * @throws JSONParseException if the JSON data could not be parsed
      */
     private Object readStringEnum(Class<?> c) throws ReflectiveOperationException, JSONParseException {
         final var buffer = readString();
@@ -202,6 +207,7 @@ public class JSONParser {
      * @param type the generic type that might be present
      * @return an array consisting of the objects read from the stream
      * @throws ReflectiveOperationException if an object cannot be filled with the values
+     * @throws JSONParseException if the JSON data could not be parsed
      */
     private Object readArray(Class<?> c, Type type) throws ReflectiveOperationException, JSONParseException {
         final var underlying = c.componentType();
@@ -228,6 +234,7 @@ public class JSONParser {
      * @param type the generic type of the collection
      * @return a collection consisting of the objects read from the stream
      * @throws ReflectiveOperationException if an object cannot be filled with the values
+     * @throws JSONParseException if the JSON data could not be parsed
      */
     @SuppressWarnings("unchecked")
     private Object readCollection(Class<?> c, Type type) throws ReflectiveOperationException, JSONParseException {
@@ -259,6 +266,7 @@ public class JSONParser {
      * @param isStringDict whether the map is a string dictionary
      * @return a map consisting of the objects read from the stream
      * @throws ReflectiveOperationException if an object cannot be filled with the values
+     * @throws JSONParseException if the JSON data could not be parsed
      */
     @SuppressWarnings("unchecked")
     private Object readMap(Class<?> c, Type type, final boolean isStringDict) throws ReflectiveOperationException, JSONParseException {
@@ -298,6 +306,7 @@ public class JSONParser {
      * @param isStringDict whether the collection is a string dictionary
      * @return a collection consisting of the read objects
      * @throws ReflectiveOperationException if an object could not be filled with the values
+     * @throws JSONParseException if the JSON data could not be parsed
      * @see #readArray(Class, Type)
      * @see #readCollection(Class, Type)
      * @see #readMap(Class, Type, boolean)
@@ -326,6 +335,7 @@ public class JSONParser {
      * @param c the class of the object
      * @return the read object
      * @throws ReflectiveOperationException if the object could not be filled with the read values
+     * @throws JSONParseException if the JSON data could not be parsed
      */
     private Object readObjectKind(final Class<?> c) throws ReflectiveOperationException, JSONParseException {
         final var value = c.getConstructor().newInstance();
@@ -376,6 +386,7 @@ public class JSONParser {
      * @param type the generic type of the object
      * @return the read object
      * @throws ReflectiveOperationException if the object could not be filled with the read values
+     * @throws JSONParseException if the JSON data could not be parsed
      * @see #readObjectKind(Class)
      * @see #readCollectionKind(Class, Type, boolean)
      * @see #readStringEnum(Class)
@@ -401,6 +412,7 @@ public class JSONParser {
      *
      * @param obj the object to fill the field in
      * @throws ReflectiveOperationException if an object could not be filled with the read values
+     * @throws JSONParseException if the JSON data could not be parsed
      * @see #readObject(Class, Type)
      */
     private void readField(Object obj) throws ReflectiveOperationException, JSONParseException {
@@ -416,6 +428,7 @@ public class JSONParser {
      *
      * @param obj the object to be filled
      * @throws ReflectiveOperationException if an object could not be filled with the read values
+     * @throws JSONParseException if the JSON data could not be parsed
      * @see #readField(Object)
      */
     private void readFields(Object obj) throws ReflectiveOperationException, JSONParseException {
@@ -432,6 +445,7 @@ public class JSONParser {
      *
      * @param obj the object to be filled
      * @throws ReflectiveOperationException if an object could not be filled with the read values
+     * @throws JSONParseException if the JSON data could not be parsed
      */
     public void readInto(Object obj) throws ReflectiveOperationException, JSONParseException {
         skipWhitespaces();
