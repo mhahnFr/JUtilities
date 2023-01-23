@@ -24,8 +24,17 @@ package mhahnFr.utils;
  *
  * @param position the position in the text
  * @param context the text in which this position is found
+ * @author mhahnFr
+ * @since 23.01.23
  */
 public record StreamPosition(int position, String context) {
+    /**
+     * Creates an error message pointing to the error found
+     * in the text.
+     *
+     * @param message the message to be displayed
+     * @return a descriptive error message
+     */
     public String makeErrorText(final String message) {
         return "bla bla bla\n" +
                 "    ^ " + message;
