@@ -138,6 +138,26 @@ public class StringStream {
     }
 
     /**
+     * Returns a {@link StreamPosition} of the current position.
+     *
+     * @return the current position as {@link StreamPosition}
+     */
+    public StreamPosition getStreamPosition() {
+        return createStreamPosition(getIndex());
+    }
+
+    /**
+     * Creates and returns a {@link StreamPosition} created
+     * from the given position in this stream.
+     *
+     * @param position the position
+     * @return a {@link StreamPosition} representing the position
+     */
+    public StreamPosition createStreamPosition(final int position) {
+        return new StreamPosition(position, source);
+    }
+
+    /**
      * Returns and consumes the next character form this stream.
      *
      * @return the next character in the underlying string
