@@ -50,6 +50,6 @@ public record StreamPosition(int position, String context) {
 
         final var lineInfo = "\n" + lines + ": ";
 
-        return lineInfo + context.substring(lineBegin + 1, lineEnd) + "\n" + " ".repeat(lineInfo.length() + Math.max(0, position - lineBegin)) + "^ " + message + "\n";
+        return lineInfo + context.substring(lineBegin + 1, lineEnd) + "\n" + " ".repeat(lineInfo.length() - 1 + Math.max(0, position - lineBegin - 1)) + "^ " + message + "\n";
     }
 }
