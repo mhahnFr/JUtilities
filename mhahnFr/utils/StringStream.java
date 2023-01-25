@@ -108,7 +108,7 @@ public class StringStream {
      *
      * @return the new reading index
      */
-    public int skip() {
+    public StreamPosition skip() {
         return skip(1);
     }
 
@@ -121,11 +121,11 @@ public class StringStream {
      * @param count the amount of characters to be skipped
      * @return the new reading index
      */
-    public int skip(int count) {
+    public StreamPosition skip(int count) {
         if (chars.length - index < count) {
             count = chars.length - index;
         }
-        return index += count;
+        return new StreamPosition(index += count, source);
     }
 
     /**
