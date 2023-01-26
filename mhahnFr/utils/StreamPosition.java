@@ -52,4 +52,18 @@ public record StreamPosition(int position, String context) {
 
         return lineInfo + context.substring(lineBegin + 1, lineEnd) + "\n" + " ".repeat(lineInfo.length() + Math.max(0, position - lineBegin)) + "^ " + message + "\n";
     }
+
+    /**
+     * Returns whether this and the given other {@link StreamPosition}
+     * are on the same line of text.
+     *
+     * @param other the other {@link StreamPosition}, its context must be the same
+     * @return whether this and the other positions are on the same line
+     * @throws IllegalArgumentException if the context is not the same
+     */
+    public boolean isOnSameLine(final StreamPosition other) {
+        if (!other.context.equals(context)) throw new IllegalArgumentException("The given StreamPosition has a different context!");
+
+        return !context.substring(position, other.position).contains("\n");
+    }
 }
