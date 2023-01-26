@@ -38,8 +38,8 @@ public record StreamPosition(int position, String context) {
     public String makeErrorText(final String message) {
         int lineBegin, lineEnd;
 
-        for (lineBegin = position; lineBegin >= 0                && context.charAt(lineBegin) != '\n'; --lineBegin);
-        for (lineEnd   = position; lineEnd   <= context.length() && context.charAt(lineEnd)   != '\n'; ++lineEnd);
+        for (lineBegin = position - 1; lineBegin >= 0                && context.charAt(lineBegin) != '\n'; --lineBegin);
+        for (lineEnd   = position;     lineEnd   <  context.length() && context.charAt(lineEnd)   != '\n'; ++lineEnd);
 
         int lines = 1;
         for (int i = 0; i < lineBegin + 1; ++i) {
@@ -50,7 +50,7 @@ public record StreamPosition(int position, String context) {
 
         final var lineInfo = "\n" + lines + ": ";
 
-        return lineInfo + context.substring(lineBegin + 1, lineEnd) + "\n" + " ".repeat(lineInfo.length() + Math.max(0, position - lineBegin)) + "^ " + message + "\n";
+        return lineInfo + context.substring(lineBegin + 1, lineEnd) + "\n" + " ".repeat(lineInfo.length() - 1 + Math.max(0, position - lineBegin - 1)) + "^ " + message + "\n";
     }
 
     /**
