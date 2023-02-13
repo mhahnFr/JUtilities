@@ -409,7 +409,10 @@ public class JSONWriter {
 
             boolean needsComma = false;
             while (it.hasNext()) {
-                final var field   = it.next();
+                final var field = it.next();
+
+                if (field.isAnnotationPresent(JSONNoSerialization.class)) continue;
+
                 final var content = field.get(obj);
 
                 if (content != null) {
