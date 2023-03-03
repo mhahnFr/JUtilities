@@ -67,4 +67,23 @@ public record StreamPosition(int position, String context) {
 
         return !context.substring(position, other.position).contains("\n");
     }
+
+    /**
+     * Returns a {@link StreamPosition} pointing to the end of the line
+     * this {@link StreamPosition} is located on. If this instance points
+     * to a newline character, this instance is returned. Otherwise, returns
+     * a new {@link StreamPosition} pointing to the next newline character or
+     * to the end of the string if there is now newline character following
+     * this position.
+     *
+     * @return the end of the line this position is located on
+     */
+    public StreamPosition getLineEnd() {
+        if (context.charAt(position) == '\n') {
+            return this;
+        }
+        int lineEnd;
+        for (lineEnd = position; lineEnd < context.length() && context.charAt(lineEnd) != '\n'; ++lineEnd);
+        return new StreamPosition(lineEnd, context);
+    }
 }
