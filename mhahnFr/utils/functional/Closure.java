@@ -17,7 +17,9 @@
  * this library, see the file LICENSE.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mhahnFr.utils;
+package mhahnFr.utils.functional;
+
+import mhahnFr.utils.Pair;
 
 public class Closure<T> {
     private ClosureCallee<T> callee;
@@ -53,7 +55,7 @@ public class Closure<T> {
             if (!parameterTypes[i].getSecond().isAssignableFrom(arguments[i].getClass())) {
                 throw new IllegalArgumentException("Argument types do not match!");
             }
-            callArguments.addArgument(parameterTypes[i].first, arguments[i]);
+            callArguments.addArgument(parameterTypes[i].getFirst(), arguments[i]);
         }
         return callee.call(callArguments);
     }

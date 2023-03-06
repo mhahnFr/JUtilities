@@ -17,9 +17,22 @@
  * this library, see the file LICENSE.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mhahnFr.utils;
+package mhahnFr.utils.functional;
 
-@FunctionalInterface
-public interface ClosureCallee<T> {
-    T call(final ClosureParameters arguments);
+import java.util.HashMap;
+
+public class ClosureParameters {
+    private final HashMap<String, Object> parameters;
+
+    ClosureParameters(final int count) {
+        parameters = HashMap.newHashMap(count);
+    }
+
+    void addArgument(final String name, final Object argument) {
+        parameters.put(name, argument);
+    }
+
+    public Object getArgument(final String name) {
+        return parameters.get(name);
+    }
 }
