@@ -19,7 +19,22 @@
 
 package mhahnFr.utils.functional;
 
+/**
+ * This interface defines the method for the {@link Closure}s callee.
+ *
+ * @param <T> the requested return type
+ * @author mhahnFr
+ * @since 06.03.23
+ * @see Closure
+ */
 @FunctionalInterface
 public interface ClosureCallee<T> {
+    /**
+     * The actual closure function. The arguments are passed
+     * by {@link Closure#call(Object...)}.
+     *
+     * @param arguments the arguments bound and given to the closure whose callee this object is
+     * @return the desired return value
+     */
     T call(final ClosureParameters arguments);
 }
