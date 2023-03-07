@@ -65,6 +65,9 @@ public class ClosureParameters {
      * @throws IllegalArgumentException if no parameter with the given name exists
      */
     public Object getArgument(final String name) {
+        if (!parameters.containsKey(name)) {
+            throw new IllegalArgumentException("No such parameter! (" + name + ")");
+        }
         return parameters.get(name);
     }
 
