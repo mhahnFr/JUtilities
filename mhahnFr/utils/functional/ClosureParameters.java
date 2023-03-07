@@ -19,6 +19,8 @@
 
 package mhahnFr.utils.functional;
 
+import mhahnFr.utils.Pair;
+
 import java.util.HashMap;
 
 public class ClosureParameters {
@@ -34,5 +36,16 @@ public class ClosureParameters {
 
     public Object getArgument(final String name) {
         return parameters.get(name);
+    }
+
+    @SafeVarargs
+    public final void check(final Pair<String, Class<?>>... parameters) {
+        for (final var parameter : parameters) {
+            final var isClass = getArgument(parameter.getFirst()).getClass();
+            if (!parameter.getSecond().isAssignableFrom(isClass)) {
+                throw new IllegalArgumentException("Parameter types do not match! Expected: " + parameter.getSecond() +
+                                                   ", got: " + isClass);
+            }
+        }
     }
 }
