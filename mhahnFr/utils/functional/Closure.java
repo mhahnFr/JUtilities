@@ -113,11 +113,17 @@ public class Closure<T> {
      * @see #bind(Pair[])
      */
     public T call(Object... arguments) {
-        if (parameterTypes.length != arguments.length) {
-            throw new IllegalArgumentException("Argument count does not equal parameter count!");
+        if (parameterTypes == null) {
+            throw new NullPointerException("Closure has not been bound! Hint: Call Closure<T>::bind(Pair<String, Class<?>>...) first.");
+        }
+        if (arguments == null) {
+            throw new NullPointerException("Null passed as argument! Hint: Consider wrapping it into an array: new Object[] { null }.");
         }
         if (callee == null) {
             throw new NullPointerException("No callee set for closure!");
+        }
+        if (parameterTypes.length != arguments.length) {
+            throw new IllegalArgumentException("Argument count does not equal parameter count!");
         }
 
         final var callArguments = new ClosureParameters(parameterTypes.length);
