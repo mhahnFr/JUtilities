@@ -51,7 +51,7 @@ public class ClosureParameters {
      * Adds an argument by its name.
      *
      * @param name     the name of the argument
-     * @param argument the actual vaue of the argument
+     * @param argument the actual value of the argument
      */
     void addArgument(final String name, final Object argument) {
         parameters.put(name, argument);
