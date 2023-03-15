@@ -73,7 +73,7 @@ public class JSONParser {
      * If this is not the case, an exception is thrown.
      *
      * @param string the string expected to follow
-     *              @throws JSONParseException if the JSON data could not be parsed
+     * @throws JSONParseException if the JSON data could not be parsed
      */
     private void expectKeep(final String string) throws JSONParseException {
         if (!stream.peek(string)) {
