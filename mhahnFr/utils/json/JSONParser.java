@@ -437,6 +437,7 @@ public class JSONParser {
 
         do {
             readField(obj);
+            skipWhitespaces();
         } while (peekConsume(","));
     }
 
