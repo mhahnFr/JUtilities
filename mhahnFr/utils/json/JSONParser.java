@@ -218,6 +218,7 @@ public class JSONParser {
         final var list = new ArrayList<>();
         do {
             list.add(readObject(underlying, type));
+            skipWhitespaces();
         } while (peekConsume(","));
 
         final var toReturn = Array.newInstance(underlying, list.size());
