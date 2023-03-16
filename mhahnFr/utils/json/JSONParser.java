@@ -92,8 +92,13 @@ public class JSONParser {
         expect("\"");
 
         final var buffer = new StringBuilder();
-        while (stream.hasNext() && !stream.peek('"')) {
-            buffer.append(stream.next());
+        char previous     = '\0',
+             overPrevious = '\0';
+        while (stream.hasNext() && !(stream.peek('"') && (previous != '\\' || overPrevious == '\\'))) {
+            overPrevious = previous;
+            previous     = stream.next();
+
+            buffer.append(previous);
         }
         expect("\"");
         return buffer.toString();
