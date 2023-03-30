@@ -25,6 +25,7 @@ import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.Objects;
 
 /**
  * This class represents a normal {@link JTextField}, extended by a default
@@ -108,7 +109,7 @@ public class HintTextField extends JTextField {
      * @return whether the hint is showing
      * @see #getHint()
      */
-    public boolean isShowingHint() { return super.getText().equals(hint) && getForeground().equals(HINT_COLOR); }
+    public boolean isShowingHint() { return super.getText().equals(hint) && Objects.equals(getForeground(),HINT_COLOR); }
 
     @Override
     public String getText() {
