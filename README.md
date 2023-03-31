@@ -2,9 +2,11 @@
 This repository contains the utility library of [mhahnFr][1].
 
 ## Usage
-It is recommended to add this repository as a `git submodule`
-to your project.
+To build a `jar` file that can be included in other projects,
+simply run `./gradlew build` (on Windows, use `gradlew.bat build`).
 
+It is recommended to add this repository as a `git submodule`
+to your project.  
 To use this library as submodule, simply add it to your `build.gradle`
 dependencies:
 ```groovy
