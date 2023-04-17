@@ -1,7 +1,7 @@
 /*
  * JUtilities - Some utilities written for Java.
  *
- * Copyright (C) 2022  mhahnFr
+ * Copyright (C) 2022-2023  mhahnFr
  *
  * This file is part of the JUtilities. This library is free software:
  * you can redistribute it and/or modify it under the terms of the
@@ -17,7 +17,7 @@
  * this library, see the file LICENSE.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mhahnFr.utils.gui;
+package mhahnFr.utils.gui.components;
 
 import javax.swing.*;
 import javax.swing.text.Document;
