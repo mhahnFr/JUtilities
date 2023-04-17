@@ -78,23 +78,23 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
     }
 
     private void selectPrevious() {
-        // TODO
+        listeners.forEach(Listener::selectPrevious);
     }
 
     private void selectNext() {
-        // TODO
+        listeners.forEach(Listener::selectNext);
     }
 
     private void selectAll() {
-        // TODO
+        listeners.forEach(Listener::selectAll);
     }
 
     private void replaceCurrent() {
-        // TODO
+        listeners.forEach(Listener::replaceCurrent);
     }
 
     private void replaceAll() {
-        // TODO
+        listeners.forEach(Listener::replaceAll);
     }
 
     public void setReplace(final boolean replace) {
@@ -120,6 +120,24 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
     }
 
     public interface Listener {
+        void selectPrevious();
+        void selectNext();
+        void selectAll();
 
+        void replaceCurrent();
+        void replaceAll();
+
+        class Adapter implements Listener {
+            @Override
+            public void selectPrevious() {}
+            @Override
+            public void selectNext() {}
+            @Override
+            public void selectAll() {}
+            @Override
+            public void replaceCurrent() {}
+            @Override
+            public void replaceAll() {}
+        }
     }
 }
