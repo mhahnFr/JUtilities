@@ -89,6 +89,7 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         add(controls, BorderLayout.EAST);
 
         install(install);
+        setReplace(false);
         searchField.getDocument().addDocumentListener(new DocumentAdapter() {
             @Override
             public void insertUpdate(DocumentEvent e) {
