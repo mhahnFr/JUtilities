@@ -29,6 +29,7 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class SearchReplacePanel extends JPanel implements DarkModeListener {
     private final java.util.List<DarkComponent<? extends JComponent>> components = new ArrayList<>();
@@ -119,7 +120,7 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         if (installed != null && document != null) {
             final var text = getAllText();
 
-            var begin = text.lastIndexOf(searching, installed.getCaretPosition());
+            var begin = text.lastIndexOf(searching, installed.getSelectionEnd());
             if (begin < 0) {
                 begin = text.lastIndexOf(searching);
                 if (begin < 0) return;
@@ -151,6 +152,14 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
 
     private void replaceCurrent() {
         listeners.forEach(Listener::replaceCurrent);
+
+        final var replacing = getReplaceString();
+        if (document != null && installed != null && replacing != null && !replacing.isBlank()) {
+            if (!Objects.equals(installed.getSelectedText(), searching)) {
+                selectNext();
+            }
+            installed.replaceSelection(replacing);
+        }
     }
 
     private void replaceAll() {
