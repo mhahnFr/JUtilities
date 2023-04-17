@@ -20,8 +20,13 @@
 package mhahnFr.utils.gui.components;
 
 import mhahnFr.utils.gui.DarkModeListener;
+import mhahnFr.utils.gui.DocumentAdapter;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.ArrayList;
 
@@ -31,8 +36,15 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
     private final JTextField replaceField;
     private final JPanel replaceControls;
     private boolean replace;
+    private JTextComponent installed;
+    private Document document;
+    private String searching = "";
 
     public SearchReplacePanel() {
+        this(null);
+    }
+
+    public SearchReplacePanel(final JTextComponent install) {
         super(new BorderLayout());
         components.add(new DarkComponent<>(this));
             final var fields = new DarkComponent<>(new JPanel(new BorderLayout()), components).getComponent();
@@ -75,14 +87,61 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
             controls.add(replaceControls, BorderLayout.SOUTH);
         add(fields,   BorderLayout.CENTER);
         add(controls, BorderLayout.EAST);
+
+        install(install);
+        searchField.getDocument().addDocumentListener(new DocumentAdapter() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                selectAll();
+                searching = searchField.getText();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                selectAll();
+                searching = searchField.getText();
+            }
+        });
+    }
+
+    private String getAllText() {
+        try {
+            return document.getText(0, document.getLength());
+        } catch (BadLocationException | NullPointerException __) {
+            return "";
+        }
     }
 
     private void selectPrevious() {
         listeners.forEach(Listener::selectPrevious);
+
+        if (installed != null && document != null) {
+            final var text = getAllText();
+
+            var begin = text.lastIndexOf(searching, installed.getCaretPosition());
+            if (begin < 0) {
+                begin = text.lastIndexOf(searching);
+                if (begin < 0) return;
+            }
+            installed.setCaretPosition(begin);
+            installed.moveCaretPosition(begin + searching.length());
+        }
     }
 
     private void selectNext() {
         listeners.forEach(Listener::selectNext);
+
+        if (installed != null && document != null) {
+            final var text = getAllText();
+
+            var begin = text.indexOf(searching, installed.getCaretPosition());
+            if (begin < 0) {
+                begin = text.indexOf(searching);
+                if (begin < 0) return;
+            }
+            installed.setCaretPosition(begin);
+            installed.moveCaretPosition(begin + searching.length());
+        }
     }
 
     private void selectAll() {
@@ -95,6 +154,19 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
 
     private void replaceAll() {
         listeners.forEach(Listener::replaceAll);
+    }
+
+    public String getSearchString() {
+        return searching;
+    }
+
+    public String getReplaceString() {
+        return replace ? null : replaceField.getText();
+    }
+
+    public void install(final JTextComponent installed) {
+        this.installed = installed;
+        this.document  = installed == null ? null : installed.getDocument();
     }
 
     public void setReplace(final boolean replace) {
