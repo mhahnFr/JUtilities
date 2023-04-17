@@ -188,7 +188,7 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
     }
 
     public void setReplace(final boolean replace) {
-        replaceBox.setSelected(true);
+        replaceBox.setSelected(replace);
     }
 
     public boolean isReplace() {
