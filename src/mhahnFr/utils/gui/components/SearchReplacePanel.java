@@ -36,6 +36,7 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
     private final java.util.List<Listener> listeners = new ArrayList<>();
     private final JTextField replaceField;
     private final JPanel replaceControls;
+    private final JCheckBox replaceBox;
     private boolean replace;
     private JTextComponent installed;
     private Document document;
@@ -69,8 +70,8 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
                     final var allButton = new JButton("Mark all");
                     allButton.addActionListener(__ -> selectAll());
 
-                    final var replaceBox = new DarkComponent<>(new JCheckBox("Replace"), components).getComponent();
-                    replaceBox.addItemListener(__ -> setReplace(replaceBox.isSelected()));
+                    replaceBox = new DarkComponent<>(new JCheckBox("Replace"), components).getComponent();
+                    replaceBox.addItemListener(__ -> setReplaceImpl(replaceBox.isSelected()));
                 searchControls.add(previousButton);
                 searchControls.add(nextButton);
                 searchControls.add(allButton);
@@ -166,6 +167,13 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         listeners.forEach(Listener::replaceAll);
     }
 
+    private void setReplaceImpl(final boolean replace) {
+        this.replace = replace;
+
+        replaceField.setVisible(replace);
+        replaceControls.setVisible(replace);
+    }
+
     public String getSearchString() {
         return searching;
     }
@@ -180,10 +188,11 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
     }
 
     public void setReplace(final boolean replace) {
-        this.replace = replace;
+        replaceBox.setSelected(true);
+    }
 
-        replaceField.setVisible(replace);
-        replaceControls.setVisible(replace);
+    public boolean isReplace() {
+        return replace;
     }
 
     @Override
