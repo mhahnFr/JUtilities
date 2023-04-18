@@ -31,22 +31,51 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/**
+ * This class acts as a search and replace panel. It can be easily be
+ * used by passing the {@link JTextComponent} in order for this class
+ * to handle the searching and the replacing process.
+ * <br><br>
+ * Otherwise, the {@link Listener} can be used to hook to the functionality
+ * provided by this component.
+ *
+ * @author mhahnFr
+ * @since 17.04.23
+ */
 public class SearchReplacePanel extends JPanel implements DarkModeListener {
+    /** The list with all components, enabling the dark mode on them.           */
     private final java.util.List<DarkComponent<? extends JComponent>> components = new ArrayList<>();
+    /** The list with the registered {@link Listener}s.                         */
     private final java.util.List<Listener> listeners = new ArrayList<>();
+    /** The {@link JTextField} used as main search field.                       */
     private final JTextField searchField;
+    /** The {@link JTextField} used as replace field.                           */
     private final JTextField replaceField;
+    /** The panel with the controls used for replacing text.                    */
     private final JPanel replaceControls;
+    /** The {@link JCheckBox} used for displaying the replace section.          */
     private final JCheckBox replaceBox;
+    /** Indicates whether the replace section should be active.                 */
     private boolean replace;
+    /** The {@link JTextComponent} that should be controlled by this component. */
     private JTextComponent installed;
+    /** The {@link Document} of the {@link #installed installed component.}     */
     private Document document;
+    /** The {@link String} for which to search.                                 */
     private String searching = "";
 
+    /**
+     * Constructs this UI component.
+     */
     public SearchReplacePanel() {
         this(null);
     }
 
+    /**
+     * Constructs this UI component. Installs the given {@link JTextComponent}.
+     *
+     * @param install the component to be installed
+     */
     public SearchReplacePanel(final JTextComponent install) {
         super(new BorderLayout());
         components.add(new DarkComponent<>(this));
@@ -108,6 +137,12 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         });
     }
 
+    /**
+     * Returns the whole text of the installed component.
+     *
+     * @return the whole text of the installed component
+     * @see #document
+     */
     private String getAllText() {
         try {
             return document.getText(0, document.getLength());
@@ -116,6 +151,9 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         }
     }
 
+    /**
+     * Selects the previous search result. Calls {@link Listener#selectPrevious()}.
+     */
     private void selectPrevious() {
         // FIXME
         listeners.forEach(Listener::selectPrevious);
@@ -133,6 +171,11 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         }
     }
 
+    /**
+     * Selects the next search occurrence. Calls {@link Listener#selectNext()}.
+     *
+     * @return whether a search result was found
+     */
     private boolean selectNext() {
         listeners.forEach(Listener::selectNext);
 
@@ -150,10 +193,18 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         return true;
     }
 
+    /**
+     * Selects all search occurrences. Calls {@link Listener#selectAll()}.
+     */
     private void selectAll() {
         listeners.forEach(Listener::selectAll);
     }
 
+    /**
+     * Replaces the currently selected search occurrence
+     * or the next occurrence.<br>
+     * Calls {@link Listener#replaceCurrent()}.
+     */
     private void replaceCurrent() {
         listeners.forEach(Listener::replaceCurrent);
 
@@ -168,6 +219,10 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         }
     }
 
+    /**
+     * Replaces all occurrences of the searched string.
+     * Calls {@link Listener#replaceAll()}.
+     */
     private void replaceAll() {
         listeners.forEach(Listener::replaceAll);
 
@@ -179,6 +234,11 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         }
     }
 
+    /**
+     * Activates or deactivates the replacement mode.
+     *
+     * @param replace whether to activate the replacement mode
+     */
     private void setReplaceImpl(final boolean replace) {
         this.replace = replace;
 
@@ -186,23 +246,54 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         replaceControls.setVisible(replace);
     }
 
+    /**
+     * Returns the {@link String} which is searched.
+     *
+     * @return the searched string
+     */
     public String getSearchString() {
         return searching;
     }
 
+    /**
+     * Returns the replacement string. If the replacement
+     * mode is not active, {@code null} is returned.
+     *
+     * @return the replacement string
+     * @see #isReplace()
+     */
     public String getReplaceString() {
         return replace ? replaceField.getText() : null;
     }
 
+    /**
+     * Installs the given {@link JTextComponent} to be controlled
+     * by this component. If there was previously a {@link JTextComponent}
+     * installed, the old one is ignored and the given one will be
+     * controlled instead.
+     *
+     * @param installed the component to be installed
+     */
     public void install(final JTextComponent installed) {
         this.installed = installed;
         this.document  = installed == null ? null : installed.getDocument();
     }
 
+    /**
+     * Activates or deactivates the replacement mode.
+     *
+     * @param replace whether to enable the replacement mode
+     */
     public void setReplace(final boolean replace) {
         replaceBox.setSelected(replace);
     }
 
+    /**
+     * Returns whether the replacement mode is currently
+     * active.
+     *
+     * @return whether the replacement mode is active
+     */
     public boolean isReplace() {
         return replace;
     }
@@ -214,10 +305,20 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         }
     }
 
+    /**
+     * Adds the given {@link Listener}.
+     *
+     * @param listener the listener to be added
+     */
     public void addListener(final Listener listener) {
         listeners.add(listener);
     }
 
+    /**
+     * Removes the given {@link Listener}.
+     *
+     * @param listener the listener to be removed
+     */
     public void removeListener(final Listener listener) {
         listeners.remove(listener);
     }
@@ -231,14 +332,56 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         }
     }
 
+    /**
+     * This interface defines the function hooks available for
+     * the {@link SearchReplacePanel}.
+     * <br><br>
+     * If not all functionality should be hooked, consider using
+     * the {@link Adapter}.
+     *
+     * @author mhahnFr
+     * @since 17.04.23
+     */
     public interface Listener {
+        /**
+         * Called when the previous occurrence of the searched string
+         * should be highlighted.
+         */
         void selectPrevious();
+
+        /**
+         * Called when the next occurrence of the searched string
+         * should be highlighted.
+         */
         void selectNext();
+
+        /**
+         * Called when all occurrences of the searched string
+         * should be highlighted.
+         */
         void selectAll();
 
+        /**
+         * Called when the currently highlighted search result
+         * should be replaced by the replacement string.<br>
+         * If no result is highlighted, the next search result
+         * should be highlighted and replaced.
+         */
         void replaceCurrent();
+
+        /**
+         * Called when all occurrences of the searched string
+         * should be replaced. Should do nothing if the searched
+         * string is not found.
+         */
         void replaceAll();
 
+        /**
+         * This class acts as an adapter for the {@link Listener}.
+         *
+         * @author mhahnFr
+         * @since 17.04.23
+         */
         class Adapter implements Listener {
             @Override
             public void selectPrevious() {}
