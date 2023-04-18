@@ -34,6 +34,7 @@ import java.util.Objects;
 public class SearchReplacePanel extends JPanel implements DarkModeListener {
     private final java.util.List<DarkComponent<? extends JComponent>> components = new ArrayList<>();
     private final java.util.List<Listener> listeners = new ArrayList<>();
+    private final JTextField searchField;
     private final JTextField replaceField;
     private final JPanel replaceControls;
     private final JCheckBox replaceBox;
@@ -50,7 +51,7 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         super(new BorderLayout());
         components.add(new DarkComponent<>(this));
             final var fields = new DarkComponent<>(new JPanel(new BorderLayout()), components).getComponent();
-                final var searchField = new DarkTextComponent<>(new HintTextField("Search..."), components).getComponent();
+                searchField = new DarkTextComponent<>(new HintTextField("Search..."), components).getComponent();
                 searchField.addActionListener(__ -> selectNext());
 
                 replaceField = new DarkTextComponent<>(new HintTextField("Replace..."), components).getComponent();
@@ -116,6 +117,7 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
     }
 
     private void selectPrevious() {
+        // FIXME
         listeners.forEach(Listener::selectPrevious);
 
         if (installed != null && document != null) {
@@ -131,7 +133,7 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
         }
     }
 
-    private void selectNext() {
+    private boolean selectNext() {
         listeners.forEach(Listener::selectNext);
 
         if (installed != null && document != null) {
@@ -140,11 +142,12 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
             var begin = text.indexOf(searching, installed.getCaretPosition());
             if (begin < 0) {
                 begin = text.indexOf(searching);
-                if (begin < 0) return;
+                if (begin < 0) return false;
             }
             installed.setCaretPosition(begin);
             installed.moveCaretPosition(begin + searching.length());
         }
+        return true;
     }
 
     private void selectAll() {
@@ -159,12 +162,21 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
             if (!Objects.equals(installed.getSelectedText(), searching)) {
                 selectNext();
             }
-            installed.replaceSelection(replacing);
+            if (installed.getSelectedText() != null) {
+                installed.replaceSelection(replacing);
+            }
         }
     }
 
     private void replaceAll() {
         listeners.forEach(Listener::replaceAll);
+
+        final var replacing = getReplaceString();
+        if (installed != null && document != null && replacing != null && !replacing.isBlank()) {
+            while (selectNext()) {
+                replaceCurrent();
+            }
+        }
     }
 
     private void setReplaceImpl(final boolean replace) {
@@ -208,6 +220,15 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
 
     public void removeListener(final Listener listener) {
         listeners.remove(listener);
+    }
+
+    @Override
+    public void setVisible(boolean aFlag) {
+        super.setVisible(aFlag);
+
+        if (aFlag) {
+            searchField.requestFocusInWindow();
+        }
     }
 
     public interface Listener {
