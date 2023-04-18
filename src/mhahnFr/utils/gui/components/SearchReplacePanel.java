@@ -179,7 +179,7 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
     }
 
     public String getReplaceString() {
-        return replace ? null : replaceField.getText();
+        return replace ? replaceField.getText() : null;
     }
 
     public void install(final JTextComponent installed) {
