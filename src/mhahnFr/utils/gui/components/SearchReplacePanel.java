@@ -155,13 +155,13 @@ public class SearchReplacePanel extends JPanel implements DarkModeListener {
      * Selects the previous search result. Calls {@link Listener#selectPrevious()}.
      */
     private void selectPrevious() {
-        // FIXME
         listeners.forEach(Listener::selectPrevious);
 
         if (installed != null && document != null) {
             final var text = getAllText();
 
-            var begin = text.lastIndexOf(searching, installed.getSelectionEnd());
+            final var startIndex = installed.getSelectionStart();
+            var begin = text.lastIndexOf(searching, startIndex > 0 ? startIndex - 1 : text.length());
             if (begin < 0) {
                 begin = text.lastIndexOf(searching);
                 if (begin < 0) return;
