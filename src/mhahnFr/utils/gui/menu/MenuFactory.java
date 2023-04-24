@@ -88,8 +88,10 @@ public class MenuFactory {
             Desktop.getDesktop().setQuitHandler(this::defaultQuitAction);
             quit = true;
         }
-        if (Desktop.getDesktop().isSupported(Desktop.Action.APP_ABOUT) && !defaultAbout) {
-            Desktop.getDesktop().setAboutHandler(__ -> defaultAboutAction());
+        if (Desktop.getDesktop().isSupported(Desktop.Action.APP_ABOUT)) {
+            if (!defaultAbout) {
+                Desktop.getDesktop().setAboutHandler(__ -> defaultAboutAction());
+            }
             about = true;
         }
         if (Desktop.getDesktop().isSupported(Desktop.Action.APP_PREFERENCES)) {
