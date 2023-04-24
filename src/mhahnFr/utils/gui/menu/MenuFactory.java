@@ -50,6 +50,22 @@ public class MenuFactory {
     private MenuProvider menuProvider;
     /** The one and only instance of this class.             */
     private static MenuFactory instance;
+    /** Indicates whether to hook the default about action.  */
+    private static boolean defaultAbout;
+
+    /**
+     *Sets the given initialization arguments. If the
+     * {@link MenuFactory} is already initialized, a
+     * {@link IllegalStateException} is thrown.
+     *
+     * @param defaultAbout whether to use the default about action if available
+     * @throws IllegalStateException if the factory is already initialized
+     */
+    public static void initializationArguments(final boolean defaultAbout) {
+        if (instance != null) throw new IllegalStateException("MenuFactory is already initialized!");
+
+        MenuFactory.defaultAbout = defaultAbout;
+    }
 
     /**
      * Returns the one and only instance of this class, Initializes it
@@ -72,7 +88,7 @@ public class MenuFactory {
             Desktop.getDesktop().setQuitHandler(this::defaultQuitAction);
             quit = true;
         }
-        if (Desktop.getDesktop().isSupported(Desktop.Action.APP_ABOUT)) {
+        if (Desktop.getDesktop().isSupported(Desktop.Action.APP_ABOUT) && !defaultAbout) {
             Desktop.getDesktop().setAboutHandler(__ -> defaultAboutAction());
             about = true;
         }
