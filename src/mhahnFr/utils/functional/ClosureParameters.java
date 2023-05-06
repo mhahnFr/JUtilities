@@ -44,7 +44,8 @@ public class ClosureParameters {
      * @param count the count of arguments to be held
      */
     ClosureParameters(final int count) {
-        parameters = HashMap.newHashMap(count);
+//        parameters = HashMap.newHashMap(count); // Will be activated on Java 21. - mhahnFr
+        parameters = new HashMap<>();
     }
 
     /**
