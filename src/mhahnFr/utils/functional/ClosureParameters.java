@@ -1,7 +1,7 @@
 /*
  * JUtilities - Some utilities written for Java.
  *
- * Copyright (C) 2023  mhahnFr
+ * Copyright (C) 2023 - 2024  mhahnFr
  *
  * This file is part of the JUtilities. This library is free software:
  * you can redistribute it and/or modify it under the terms of the
@@ -44,8 +44,7 @@ public class ClosureParameters {
      * @param count the count of arguments to be held
      */
     ClosureParameters(final int count) {
-//        parameters = HashMap.newHashMap(count); // Will be activated on Java 21. - mhahnFr
-        parameters = new HashMap<>();
+        parameters = HashMap.newHashMap(count);
     }
 
     /**
