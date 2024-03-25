@@ -1,5 +1,5 @@
 # Welcome to the JUtilities!
-This repository contains the utility library of [mhahnFr][1].
+This repository contains the Java utility library of [mhahnFr][1].
 
 ## Usage
 To build a `jar` file that can be included in other projects,
@@ -20,8 +20,10 @@ include('JUtilities')
 ```
 
 ### Final notes
+This library requires Java in version 19 or higher.
+
 This library is licensed under the terms of the GPL 3.0.
 
-© Copyright 2017 - 2023 [mhahnFr][1]
+© Copyright 2017 - 2024 [mhahnFr][1]
 
-[1]: https://www.github.com/mhahnFr
+[1]: https://github.com/mhahnFr
