@@ -1,7 +1,7 @@
 /*
  * JUtilities - Some utilities written for Java.
  *
- * Copyright (C) 2023  mhahnFr
+ * Copyright (C) 2023 - 2024  mhahnFr
  *
  * This file is part of the JUtilities. This library is free software:
  * you can redistribute it and/or modify it under the terms of the
@@ -92,13 +92,10 @@ public class JSONParser {
         expect("\"");
 
         final var buffer = new StringBuilder();
-        char previous     = '\0',
-             overPrevious = '\0';
-        while (stream.hasNext() && !(stream.peek('"') && (previous != '\\' || overPrevious == '\\'))) {
-            overPrevious = previous;
-            previous     = stream.next();
+        while (stream.hasNext() && !stream.peek('"')) {
+            if (stream.peek('\\')) stream.next();
 
-            buffer.append(previous);
+            buffer.append(stream.next());
         }
         expect("\"");
         return buffer.toString();
