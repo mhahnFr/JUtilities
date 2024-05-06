@@ -72,6 +72,6 @@ This library is licensed under the terms of the GNU GPL 3.0.
 © Copyright 2017 - 2024 [mhahnFr][1]
 
 [1]: https://github.com/mhahnFr
-[2]: https://github.com/mhahnFr/JUtilities/packages/
+[2]: https://github.com/mhahnFr/JUtilities/packages/2132701
 [3]: https://github.com/mhahnFr/JUtilities/releases/latest
 [4]: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#using-a-published-package
