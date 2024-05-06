@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'mhahnfr:jutilities:0.1'
+    implementation 'mhahnfr:jutilities:0.1.1'
 }
 ```
 
@@ -43,7 +43,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'mhahnfr:jutilities:0.1'
+    implementation 'mhahnfr:jutilities:0.1.1'
 }
 ```
 
