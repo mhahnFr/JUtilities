@@ -30,7 +30,7 @@ name: Gradle Publish Package
 
 on:
   release:
-    types: [created]
+    types: [created, published]
 
 jobs:
   build:
